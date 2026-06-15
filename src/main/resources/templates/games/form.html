@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title th:text="${isEdit} ? 'Editar Jogo | MemoryCard' : 'Novo Jogo | MemoryCard'">Jogo | MemoryCard</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="container nav-content">
+
+        <a th:href="@{/dashboard}" class="logo">MemoryCard</a>
+
+        <div class="nav-links">
+
+            <a th:href="@{/dashboard}">Dashboard</a>
+
+            <a th:href="@{/games}">Meus Jogos</a>
+
+            <form th:action="@{/logout}" method="post" class="logout-form">
+
+                <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+
+<main class="container">
+
+    <header class="page-header">
+
+        <h1 th:text="${isEdit} ? 'Editar Jogo' : 'Novo Jogo'">Novo Jogo</h1>
+
+    </header>
+
+
+
+    <form th:action="${isEdit} ? @{/games/{id}(id=${gameId})} : @{/games}"
+
+          th:object="${gameForm}"
+
+          method="post"
+
+          enctype="multipart/form-data"
+
+          class="card form-card">
+
+
+
+        <input type="hidden" id="externalCoverUrl" name="externalCoverUrl" th:value="${gameForm.externalCoverUrl}">
+
+
+
+        <div class="form-row">
+
+            <div class="form-group flex-grow search-group">
+
+                <label for="title">Título *</label>
+
+                <input type="text" id="title" th:field="*{title}" required autocomplete="off" placeholder="Digite para buscar jogos...">
+
+                <p id="search-hint" class="field-hint">Digite pelo menos 2 letras para buscar capa e dados do jogo.</p>
+
+                <div id="game-suggestions" class="game-suggestions"></div>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="platform">Plataforma</label>
+
+                <input type="text" id="platform" th:field="*{platform}" placeholder="PC, PS5, Switch...">
+
+            </div>
+
+        </div>
+
+
+
+        <div id="cover-preview" class="cover-preview" th:classappend="${existingCover} ? 'visible' : ''">
+
+            <span class="cover-preview-label">Capa selecionada</span>
+
+            <img id="cover-preview-img"
+                 th:src="${existingCover}"
+                 th:attr="data-existing=${existingCover}"
+                 alt="Preview da capa"
+                 referrerpolicy="no-referrer">
+
+        </div>
+
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="status">Status *</label>
+
+                <select id="status" th:field="*{status}">
+                    <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.getLabel()}"></option>
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="hoursPlayed">Horas jogadas</label>
+
+                <input type="number" id="hoursPlayed" th:field="*{hoursPlayed}" step="0.5" min="0">
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="personalRating">Nota pessoal (0-10)</label>
+
+                <input type="number" id="personalRating" th:field="*{personalRating}" step="0.1" min="0" max="10">
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="externalRating">Nota externa (0-10)</label>
+
+                <input type="number" id="externalRating" th:field="*{externalRating}" step="0.1" min="0" max="10">
+
+            </div>
+
+        </div>
+
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label for="startedAt">Data de início</label>
+
+                <input type="date" id="startedAt" th:field="*{startedAt}">
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="completedAt">Data em que zerou</label>
+
+                <input type="date" id="completedAt" th:field="*{completedAt}">
+
+            </div>
+
+        </div>
+
+
+
+        <div class="form-group">
+
+            <label for="notes">Observações</label>
+
+            <textarea id="notes" th:field="*{notes}" rows="4"></textarea>
+
+        </div>
+
+
+
+        <div class="form-group">
+
+            <label for="cover">Capa personalizada (opcional)</label>
+
+            <input type="file" id="cover" name="cover" accept="image/*">
+
+            <p class="field-hint">Se enviar um arquivo, ele substitui a capa buscada automaticamente.</p>
+
+        </div>
+
+
+
+        <div class="form-actions">
+
+            <a th:href="${isEdit} ? @{/games/{id}(id=${gameId})} : @{/games}" class="btn btn-ghost">Cancelar</a>
+
+            <button type="submit" class="btn btn-primary" th:text="${isEdit} ? 'Salvar' : 'Cadastrar'">Cadastrar</button>
+
+        </div>
+
+    </form>
+
+</main>
+
+
+
+<script th:src="@{/js/game-search.js}"></script>
+<script th:src="@{/js/game-form.js}"></script>
+
+</body>
+
+</html>
+
+

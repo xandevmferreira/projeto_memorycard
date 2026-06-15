@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${game.title} + ' | MemoryCard'">Jogo | MemoryCard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="container nav-content">
+        <a th:href="@{/dashboard}" class="logo">MemoryCard</a>
+        <div class="nav-links">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/games}">Meus Jogos</a>
+            <form th:action="@{/logout}" method="post" class="logout-form">
+                <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<main class="container">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <header class="page-header">
+        <div>
+            <a th:href="@{/games}" class="back-link">← Voltar</a>
+            <h1 th:text="${game.title}">Título</h1>
+            <span class="badge" th:text="${game.status.getLabel()}">Jogando</span>
+        </div>
+        <div class="header-actions">
+            <a th:if="${game.status.name() != 'COMPLETED'}"
+               th:href="@{|/games/${game.id}/complete|}"
+               class="btn btn-success"
+               onclick="return confirm('Marcar este jogo como zerado?');">✓ Zerar jogo</a>
+            <a th:href="@{/games/{id}/edit(id=${game.id})}" class="btn btn-ghost">Editar</a>
+            <form th:action="@{/games/{id}/delete(id=${game.id})}" method="post"
+                  onsubmit="return confirm('Tem certeza que deseja excluir este jogo?');">
+                <button type="submit" class="btn btn-danger">Excluir</button>
+            </form>
+        </div>
+    </header>
+
+    <div class="detail-grid">
+        <section class="card">
+            <img th:if="${game.coverUrl}" th:src="${game.coverUrl}" alt="Capa" class="detail-cover">
+            <div th:unless="${game.coverUrl}" class="detail-cover placeholder">🎮</div>
+
+            <dl class="detail-info">
+                <div th:if="${game.platform}">
+                    <dt>Plataforma</dt>
+                    <dd th:text="${game.platform}">PC</dd>
+                </div>
+                <div>
+                    <dt>Horas jogadas</dt>
+                    <dd th:text="${game.hoursPlayed} + 'h'">0h</dd>
+                </div>
+                <div th:if="${game.personalRating}">
+                    <dt>Nota pessoal</dt>
+                    <dd th:text="${game.personalRating} + '/10'">0/10</dd>
+                </div>
+                <div th:if="${game.externalRating}">
+                    <dt>Nota externa</dt>
+                    <dd th:text="${game.externalRating} + '/10'">0/10</dd>
+                </div>
+                <div th:if="${game.startedAt}">
+                    <dt>Início</dt>
+                    <dd th:text="${#temporals.format(game.startedAt, 'dd/MM/yyyy')}">01/01/2024</dd>
+                </div>
+                <div th:if="${game.completedAt}">
+                    <dt>Zerado em</dt>
+                    <dd th:text="${#temporals.format(game.completedAt, 'dd/MM/yyyy')}">01/01/2024</dd>
+                </div>
+                <div th:if="${game.notes}">
+                    <dt>Observações</dt>
+                    <dd th:text="${game.notes}">Notas</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="card">
+            <h2>Screenshots</h2>
+
+            <form th:action="@{/games/{id}/screenshots(id=${game.id})}"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="upload-form">
+                <input type="file" name="file" accept="image/*" required>
+                <button type="submit" class="btn btn-primary btn-sm">Enviar print</button>
+            </form>
+
+            <div th:if="${#lists.isEmpty(game.screenshots)}" class="empty-state-small">
+                <p>Nenhum screenshot enviado.</p>
+            </div>
+
+            <div class="screenshots-grid" th:unless="${#lists.isEmpty(game.screenshots)}">
+                <div th:each="screenshot : ${game.screenshots}" class="screenshot-item">
+                    <img th:src="${screenshot.url}" alt="Screenshot">
+                    <form th:action="@{/games/{gameId}/screenshots/{screenshotId}/delete(gameId=${game.id}, screenshotId=${screenshot.id})}"
+                          method="post"
+                          onsubmit="return confirm('Remover este screenshot?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div th:replace="~{fragments/fab :: fab}"></div>
+</body>
+</html>

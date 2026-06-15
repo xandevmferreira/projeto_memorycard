@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' | MemoryCard' : 'MemoryCard'}">MemoryCard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar" th:if="${showNav != false}">
+    <div class="container nav-content">
+        <a th:href="@{/dashboard}" class="logo">MemoryCard</a>
+        <div class="nav-links">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/games}">Meus Jogos</a>
+            <a th:href="@{/games/new}" class="btn btn-primary btn-sm">+ Novo Jogo</a>
+            <form th:action="@{/logout}" method="post" class="logout-form">
+                <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<main class="container" th:classappend="${mainClass}">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    <div layout:fragment="content"></div>
+</main>
+
+<footer class="footer" th:if="${showNav != false}">
+    <div class="container">
+        <p>MemoryCard — seu catálogo pessoal de jogos</p>
+    </div>
+</footer>
+</body>
+</html>
