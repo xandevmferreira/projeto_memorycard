@@ -1,11 +1,14 @@
 package com.memorycard.controller.web;
 
 import com.memorycard.dto.request.GameRequest;
+import com.memorycard.entity.CompletionType;
 import com.memorycard.entity.GameStatus;
 import com.memorycard.security.SecurityUtils;
 import com.memorycard.service.CoverImageService;
 import com.memorycard.service.ExternalGameApiService;
+import com.memorycard.service.GameJournalService;
 import com.memorycard.service.GameService;
+import com.memorycard.service.RetroAchievementsService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,13 +26,19 @@ public class GameWebController {
     private final GameService gameService;
     private final ExternalGameApiService externalGameApiService;
     private final CoverImageService coverImageService;
+    private final RetroAchievementsService retroAchievementsService;
+    private final GameJournalService gameJournalService;
 
     public GameWebController(GameService gameService,
                              ExternalGameApiService externalGameApiService,
-                             CoverImageService coverImageService) {
+                             CoverImageService coverImageService,
+                             RetroAchievementsService retroAchievementsService,
+                             GameJournalService gameJournalService) {
         this.gameService = gameService;
         this.externalGameApiService = externalGameApiService;
         this.coverImageService = coverImageService;
+        this.retroAchievementsService = retroAchievementsService;
+        this.gameJournalService = gameJournalService;
     }
 
     @GetMapping
@@ -41,7 +50,7 @@ public class GameWebController {
     @GetMapping("/new")
     public String createForm(Model model) {
         model.addAttribute("gameForm", new GameForm());
-        model.addAttribute("statuses", GameStatus.values());
+        populateFormOptions(model);
         model.addAttribute("isEdit", false);
         return "games/form";
     }
@@ -53,7 +62,7 @@ public class GameWebController {
                          Model model,
                          RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("statuses", GameStatus.values());
+            populateFormOptions(model);
             model.addAttribute("isEdit", false);
             model.addAttribute("existingCover", coverImageService.toDisplayUrl(gameForm.getExternalCoverUrl()));
             return "games/form";
@@ -61,6 +70,12 @@ public class GameWebController {
         var game = gameService.create(SecurityUtils.getCurrentUserId(), gameForm.toRequest(), cover, gameForm.getExternalCoverUrl());
         redirectAttributes.addFlashAttribute("success", "Jogo cadastrado com sucesso!");
         return "redirect:/games/" + game.id();
+    }
+
+    @GetMapping("/search-retro")
+    @ResponseBody
+    public Object searchRetro(@RequestParam("query") String query) {
+        return retroAchievementsService.search(query, 10);
     }
 
     @GetMapping("/search-external")
@@ -90,6 +105,12 @@ public class GameWebController {
         form.setNotes(game.notes());
         form.setStartedAt(game.startedAt());
         form.setCompletedAt(game.completedAt());
+        form.setCompletionType(game.completionType());
+        form.setTags(game.tags() != null ? game.tags() : "");
+        form.setRetro(game.retro());
+        form.setEmulator(game.emulator() != null ? game.emulator() : "");
+        form.setRetroAchievementsGameId(game.retroAchievementsGameId());
+        form.setRetroConsoleId(game.retroConsoleId());
         form.setExternalCoverUrl(rawCoverUrl != null && rawCoverUrl.startsWith("/uploads") ? "" : (rawCoverUrl != null ? rawCoverUrl : ""));
 
         model.addAttribute("gameForm", form);
@@ -97,9 +118,16 @@ public class GameWebController {
         model.addAttribute("existingCover", rawCoverUrl != null && rawCoverUrl.startsWith("/uploads")
                 ? rawCoverUrl
                 : coverImageService.toDisplayUrl(rawCoverUrl));
-        model.addAttribute("statuses", GameStatus.values());
+        populateFormOptions(model);
         model.addAttribute("isEdit", true);
         return "games/form";
+    }
+
+    @GetMapping("/{id}/sync-retro")
+    public String syncRetro(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+        gameService.syncRetroProgressForGame(SecurityUtils.getCurrentUserId(), id);
+        redirectAttributes.addFlashAttribute("success", "Progresso RetroAchievements atualizado!");
+        return "redirect:/games/" + id;
     }
 
     @GetMapping("/{id}/complete")
@@ -118,7 +146,7 @@ public class GameWebController {
                          RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("gameId", id);
-            model.addAttribute("statuses", GameStatus.values());
+            populateFormOptions(model);
             model.addAttribute("isEdit", true);
             model.addAttribute("existingCover", coverImageService.toDisplayUrl(gameForm.getExternalCoverUrl()));
             return "games/form";
@@ -151,6 +179,30 @@ public class GameWebController {
         gameService.deleteScreenshot(SecurityUtils.getCurrentUserId(), gameId, screenshotId);
         redirectAttributes.addFlashAttribute("success", "Screenshot removido!");
         return "redirect:/games/" + gameId;
+    }
+
+    @PostMapping("/{id}/journal")
+    public String addJournal(@PathVariable("id") Long id,
+                             @RequestParam("content") String content,
+                             @RequestParam(value = "spoiler", defaultValue = "false") boolean spoiler,
+                             RedirectAttributes redirectAttributes) {
+        gameJournalService.addEntry(SecurityUtils.getCurrentUserId(), id, content, spoiler);
+        redirectAttributes.addFlashAttribute("success", "Entrada adicionada ao diário!");
+        return "redirect:/games/" + id;
+    }
+
+    @PostMapping("/{gameId}/journal/{entryId}/delete")
+    public String deleteJournal(@PathVariable("gameId") Long gameId,
+                                @PathVariable("entryId") Long entryId,
+                                RedirectAttributes redirectAttributes) {
+        gameJournalService.deleteEntry(SecurityUtils.getCurrentUserId(), gameId, entryId);
+        redirectAttributes.addFlashAttribute("success", "Entrada removida!");
+        return "redirect:/games/" + gameId;
+    }
+
+    private void populateFormOptions(Model model) {
+        model.addAttribute("statuses", GameStatus.values());
+        model.addAttribute("completionTypes", CompletionType.values());
     }
 
     private String resolveRawCoverUrl(String coverUrl) {

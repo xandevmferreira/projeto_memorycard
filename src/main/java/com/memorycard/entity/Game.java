@@ -46,6 +46,27 @@ public class Game {
     @Column(name = "completed_at")
     private LocalDate completedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "completion_type")
+    private CompletionType completionType;
+
+    @Column(length = 500)
+    private String tags;
+
+    @Column(name = "is_retro", nullable = false)
+    private boolean retro;
+
+    private String emulator;
+
+    @Column(name = "retro_achievements_game_id")
+    private Integer retroAchievementsGameId;
+
+    @Column(name = "retro_console_id")
+    private Integer retroConsoleId;
+
+    @Column(name = "retro_progress_percent", precision = 5, scale = 2)
+    private java.math.BigDecimal retroProgressPercent;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -149,6 +170,21 @@ public class Game {
     public void setCompletedAt(LocalDate completedAt) {
         this.completedAt = completedAt;
     }
+
+    public CompletionType getCompletionType() { return completionType; }
+    public void setCompletionType(CompletionType completionType) { this.completionType = completionType; }
+    public String getTags() { return tags; }
+    public void setTags(String tags) { this.tags = tags; }
+    public boolean isRetro() { return retro; }
+    public void setRetro(boolean retro) { this.retro = retro; }
+    public String getEmulator() { return emulator; }
+    public void setEmulator(String emulator) { this.emulator = emulator; }
+    public Integer getRetroAchievementsGameId() { return retroAchievementsGameId; }
+    public void setRetroAchievementsGameId(Integer retroAchievementsGameId) { this.retroAchievementsGameId = retroAchievementsGameId; }
+    public Integer getRetroConsoleId() { return retroConsoleId; }
+    public void setRetroConsoleId(Integer retroConsoleId) { this.retroConsoleId = retroConsoleId; }
+    public java.math.BigDecimal getRetroProgressPercent() { return retroProgressPercent; }
+    public void setRetroProgressPercent(java.math.BigDecimal retroProgressPercent) { this.retroProgressPercent = retroProgressPercent; }
 
     public Instant getCreatedAt() {
         return createdAt;

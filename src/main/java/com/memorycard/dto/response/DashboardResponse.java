@@ -7,7 +7,10 @@ public record DashboardResponse(
         long totalGames,
         long completedGames,
         BigDecimal totalHoursPlayed,
+        DashboardStats stats,
         List<GameResponse> recentGames,
         List<PopularGameResponse> popularGamesThisWeek,
-        List<GamingNewsItem> gamingNews
+        List<GamingNewsItem> gamingNews,
+        List<CommunityCompletion> communityCompletions,
+        List<CommunityLeaderboardEntry> communityLeaderboard
 ) {}

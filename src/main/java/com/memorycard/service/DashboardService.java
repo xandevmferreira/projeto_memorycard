@@ -1,15 +1,16 @@
 package com.memorycard.service;
 
 import com.memorycard.dto.response.DashboardResponse;
+import com.memorycard.dto.response.DashboardStats;
 import com.memorycard.dto.response.GameResponse;
 import com.memorycard.dto.response.PopularGameResponse;
-import com.memorycard.entity.GameStatus;
 import com.memorycard.repository.GameRepository;
 import com.memorycard.storage.StorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,31 +21,60 @@ public class DashboardService {
     private final StorageService storageService;
     private final GamingNewsService gamingNewsService;
     private final CoverImageService coverImageService;
+    private final GameJournalService gameJournalService;
+    private final CommunityService communityService;
 
     public DashboardService(GameRepository gameRepository,
                             StorageService storageService,
                             GamingNewsService gamingNewsService,
-                            CoverImageService coverImageService) {
+                            CoverImageService coverImageService,
+                            GameJournalService gameJournalService,
+                            CommunityService communityService) {
         this.gameRepository = gameRepository;
         this.storageService = storageService;
         this.gamingNewsService = gamingNewsService;
         this.coverImageService = coverImageService;
+        this.gameJournalService = gameJournalService;
+        this.communityService = communityService;
     }
 
     @Transactional(readOnly = true)
     public DashboardResponse getDashboard(Long userId) {
         long totalGames = gameRepository.countByUserId(userId);
-        long completedGames = gameRepository.countByUserIdAndStatus(userId, GameStatus.COMPLETED);
+        long completedGames = gameRepository.countByUserIdAndStatus(userId, com.memorycard.entity.GameStatus.COMPLETED);
         BigDecimal totalHours = gameRepository.sumHoursPlayedByUserId(userId);
+
+        DashboardStats stats = buildStats(userId, totalGames, completedGames);
 
         List<GameResponse> recentGames = gameRepository.findTop5ByUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(game -> GameMapper.toResponse(game, storageService, coverImageService))
                 .toList();
 
-        List<PopularGameResponse> popularGames = getMockPopularGames();
-        List<com.memorycard.dto.response.GamingNewsItem> news = gamingNewsService.getLatestNews();
+        return new DashboardResponse(
+                totalGames,
+                completedGames,
+                totalHours,
+                stats,
+                recentGames,
+                getMockPopularGames(),
+                gamingNewsService.getLatestNews(),
+                communityService.recentCompletions(6),
+                communityService.leaderboard(5)
+        );
+    }
 
-        return new DashboardResponse(totalGames, completedGames, totalHours, recentGames, popularGames, news);
+    private DashboardStats buildStats(Long userId, long totalGames, long completedGames) {
+        long retroGames = gameRepository.countByUserIdAndRetroTrue(userId);
+        long completedThisYear = gameRepository.countCompletedSince(userId, LocalDate.of(LocalDate.now().getYear(), 1, 1));
+        int completionRate = totalGames == 0
+                ? 0
+                : BigDecimal.valueOf(completedGames * 100.0 / totalGames).setScale(0, RoundingMode.HALF_UP).intValue();
+        String topPlatform = gameRepository.countByPlatform(userId).stream()
+                .findFirst()
+                .map(row -> (String) row[0])
+                .orElse("—");
+        long journalEntries = gameJournalService.countByUser(userId);
+        return new DashboardStats(retroGames, completedThisYear, completionRate, topPlatform, journalEntries);
     }
 
     private List<PopularGameResponse> getMockPopularGames() {
@@ -55,10 +85,10 @@ public class DashboardService {
                 new PopularGameResponse("Baldur's Gate 3", "PC", BigDecimal.valueOf(9.6),
                         "https://media.rawg.io/media/games/26c/26c44767c18f81f4f2e444e7ebd1d0f2.jpg",
                         LocalDate.of(2023, 8, 3), 980_000),
-                new PopularGameResponse("Hollow Knight: Silksong", "Nintendo Switch", BigDecimal.valueOf(9.2),
-                        null, LocalDate.of(2025, 9, 4), 750_000),
-                new PopularGameResponse("Clair Obscur: Expedition 33", "PlayStation 5", BigDecimal.valueOf(9.0),
-                        null, LocalDate.of(2025, 4, 24), 620_000),
+                new PopularGameResponse("Super Mario World", "SNES", BigDecimal.valueOf(9.2),
+                        null, LocalDate.of(1990, 11, 21), 750_000),
+                new PopularGameResponse("Final Fantasy III", "SNES", BigDecimal.valueOf(9.0),
+                        null, LocalDate.of(1994, 4, 2), 620_000),
                 new PopularGameResponse("Hades II", "PC", BigDecimal.valueOf(9.3),
                         null, LocalDate.of(2024, 5, 6), 540_000)
         );

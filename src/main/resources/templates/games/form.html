@@ -159,19 +159,50 @@
             </div>
 
             <div class="form-group">
-
                 <label for="completedAt">Data em que zerou</label>
-
                 <input type="date" id="completedAt" th:field="*{completedAt}">
-
             </div>
-
+            <div class="form-group">
+                <label for="completionType">Tipo de conclusão</label>
+                <select id="completionType" th:field="*{completionType}">
+                    <option value="">—</option>
+                    <option th:each="ct : ${completionTypes}" th:value="${ct}" th:text="${ct.getLabel()}"></option>
+                </select>
+            </div>
         </div>
 
+        <div class="form-group">
+            <label for="tags">Tags</label>
+            <input type="text" id="tags" th:field="*{tags}" placeholder="jrpg, retro, emulador, nostalgia">
+            <p class="field-hint">Separe por vírgula. Ex: snes, retro, speedrun</p>
+        </div>
 
+        <section class="card form-section retro-section" id="retro-section">
+            <h2>🕹️ Jogo retro / emulador</h2>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="retro" th:field="*{retro}"> Este jogo roda em emulador
+                </label>
+            </div>
+            <div class="form-row">
+                <div class="form-group flex-grow search-group">
+                    <label for="retro-search">Buscar no RetroAchievements</label>
+                    <input type="text" id="retro-search" autocomplete="off" placeholder="Ex: Super Mario World, FF III...">
+                    <div id="retro-suggestions" class="game-suggestions"></div>
+                </div>
+                <div class="form-group">
+                    <label for="emulator">Emulador</label>
+                    <input type="text" id="emulator" th:field="*{emulator}" placeholder="RetroArch, Snes9x...">
+                </div>
+            </div>
+            <input type="hidden" id="retroAchievementsGameId" th:field="*{retroAchievementsGameId}">
+            <input type="hidden" id="retroConsoleId" th:field="*{retroConsoleId}">
+            <p id="retro-selected" class="field-hint" th:if="${gameForm.retroAchievementsGameId}">
+                RA Game ID: <span th:text="${gameForm.retroAchievementsGameId}"></span>
+            </p>
+        </section>
 
         <div class="form-group">
-
             <label for="notes">Observações</label>
 
             <textarea id="notes" th:field="*{notes}" rows="4"></textarea>
@@ -207,6 +238,7 @@
 
 
 <script th:src="@{/js/game-search.js}"></script>
+<script th:src="@{/js/retro-search.js}"></script>
 <script th:src="@{/js/game-form.js}"></script>
 
 </body>

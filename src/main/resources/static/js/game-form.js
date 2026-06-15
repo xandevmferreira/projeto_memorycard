@@ -11,9 +11,15 @@ document.addEventListener('DOMContentLoaded', () => {
         completedAtInput.addEventListener('change', () => {
             if (completedAtInput.value) {
                 statusSelect.value = 'COMPLETED';
-                updateCompletedVisibility();
-            }
-        });
+        updateCompletedVisibility();
+    }
+
+    const retroCheckbox = document.getElementById('retro');
+    const retroSection = document.getElementById('retro-section');
+    if (retroCheckbox && retroSection) {
+        retroSection.classList.toggle('visible', retroCheckbox.checked);
+    }
+});
 
         statusSelect.addEventListener('change', () => {
             if (statusSelect.value === 'COMPLETED' && !completedAtInput.value) {

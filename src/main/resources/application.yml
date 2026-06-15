@@ -39,6 +39,10 @@ app:
     api-key: ${RAWG_API_KEY:}
     base-url: https://api.rawg.io/api
     enabled: ${RAWG_ENABLED:false}
+  retroachievements:
+    enabled: ${RA_ENABLED:false}
+    api-key: ${RA_API_KEY:}
+    base-url: https://retroachievements.org
   news:
     enabled: true
     cache-minutes: 30

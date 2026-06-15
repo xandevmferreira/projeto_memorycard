@@ -1,6 +1,8 @@
 package com.memorycard.service;
 
 import com.memorycard.dto.response.GameResponse;
+import com.memorycard.dto.response.JournalEntryResponse;
+import com.memorycard.dto.response.RetroAchievementProgress;
 import com.memorycard.dto.response.ScreenshotResponse;
 import com.memorycard.entity.Game;
 import com.memorycard.entity.GameScreenshot;
@@ -14,6 +16,8 @@ public final class GameMapper {
     private GameMapper() {}
 
     public static GameResponse toResponse(Game game, List<GameScreenshot> screenshots,
+                                          List<JournalEntryResponse> journal,
+                                          RetroAchievementProgress retroProgress,
                                           StorageService storageService,
                                           CoverImageService coverImageService) {
         List<ScreenshotResponse> screenshotResponses = screenshots == null
@@ -37,9 +41,29 @@ public final class GameMapper {
                 toDisplayCover(game.getCoverUrl(), coverImageService),
                 game.getStartedAt(),
                 game.getCompletedAt(),
+                game.getCompletionType(),
+                game.getTags(),
+                game.isRetro(),
+                game.getEmulator(),
+                game.getRetroAchievementsGameId(),
+                game.getRetroConsoleId(),
+                game.getRetroProgressPercent(),
+                retroProgress,
                 game.getCreatedAt(),
-                screenshotResponses
+                screenshotResponses,
+                journal != null ? journal : Collections.emptyList()
         );
+    }
+
+    public static GameResponse toResponse(Game game, List<GameScreenshot> screenshots,
+                                          StorageService storageService,
+                                          CoverImageService coverImageService) {
+        return toResponse(game, screenshots, Collections.emptyList(), null, storageService, coverImageService);
+    }
+
+    public static GameResponse toResponse(Game game, StorageService storageService,
+                                          CoverImageService coverImageService) {
+        return toResponse(game, Collections.emptyList(), storageService, coverImageService);
     }
 
     private static String toDisplayCover(String coverUrl, CoverImageService coverImageService) {
@@ -50,10 +74,5 @@ public final class GameMapper {
             return coverUrl;
         }
         return coverImageService.toDisplayUrl(coverUrl);
-    }
-
-    public static GameResponse toResponse(Game game, StorageService storageService,
-                                          CoverImageService coverImageService) {
-        return toResponse(game, Collections.emptyList(), storageService, coverImageService);
     }
 }

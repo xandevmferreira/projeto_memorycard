@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${list.name()} + ' | MemoryCard'">Lista</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="container nav-content">
+        <a th:href="@{/dashboard}" class="logo">MemoryCard</a>
+        <div class="nav-links">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/games}">Meus Jogos</a>
+            <a th:href="@{/lists}" class="active">Listas</a>
+            <a th:href="@{/profile}">Perfil</a>
+            <form th:action="@{/logout}" method="post" class="logout-form">
+                <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<main class="container">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <header class="page-header">
+        <div>
+            <a th:href="@{/lists}" class="back-link">← Voltar às listas</a>
+            <h1 th:text="${list.name()}">Lista</h1>
+            <p th:if="${list.description()}" class="subtitle" th:text="${list.description()}">Descrição</p>
+        </div>
+        <form th:action="@{/lists/{id}/delete(id=${list.id})}" method="post" onsubmit="return confirm('Excluir esta lista?');">
+            <button type="submit" class="btn btn-danger">Excluir lista</button>
+        </form>
+    </header>
+
+    <section class="card">
+        <h2>Adicionar jogo à lista</h2>
+        <form th:action="@{/lists/{id}/add(id=${list.id})}" method="post" class="list-add-form">
+            <select name="gameId" required>
+                <option value="">Selecione um jogo...</option>
+                <option th:each="g : ${games}" th:value="${g.id()}" th:text="${g.title()}">Jogo</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Adicionar</button>
+        </form>
+    </section>
+
+    <div th:if="${#lists.isEmpty(list.games())}" class="empty-state card">
+        <p>Esta lista ainda está vazia.</p>
+    </div>
+
+    <div class="games-grid" th:unless="${#lists.isEmpty(list.games())}">
+        <article th:each="game : ${list.games()}" class="game-card">
+            <a th:href="@{/games/{id}(id=${game.id})}" class="game-card-link">
+                <img th:if="${game.coverUrl}" th:src="${game.coverUrl}" alt="Capa" class="game-cover">
+                <div th:unless="${game.coverUrl}" class="game-cover placeholder">🎮</div>
+                <div class="game-card-body">
+                    <h3 th:text="${game.title}">Título</h3>
+                    <span class="badge" th:text="${game.status.getLabel()}">Status</span>
+                </div>
+            </a>
+            <form th:action="@{/lists/{listId}/remove/{gameId}(listId=${list.id}, gameId=${game.id})}" method="post">
+                <button type="submit" class="btn btn-ghost btn-sm">Remover</button>
+            </form>
+        </article>
+    </div>
+</main>
+</body>
+</html>

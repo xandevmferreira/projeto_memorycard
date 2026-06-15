@@ -1,5 +1,6 @@
 package com.memorycard.dto.response;
 
+import com.memorycard.entity.CompletionType;
 import com.memorycard.entity.GameStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,6 +19,15 @@ public record GameResponse(
         String coverUrl,
         LocalDate startedAt,
         LocalDate completedAt,
+        CompletionType completionType,
+        String tags,
+        boolean retro,
+        String emulator,
+        Integer retroAchievementsGameId,
+        Integer retroConsoleId,
+        BigDecimal retroProgressPercent,
+        RetroAchievementProgress retroProgress,
         Instant createdAt,
-        List<ScreenshotResponse> screenshots
+        List<ScreenshotResponse> screenshots,
+        List<JournalEntryResponse> journalEntries
 ) {}

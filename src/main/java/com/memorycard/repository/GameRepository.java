@@ -24,4 +24,18 @@ public interface GameRepository extends JpaRepository<Game, Long> {
     BigDecimal sumHoursPlayedByUserId(@Param("userId") Long userId);
 
     List<Game> findTop5ByUserIdOrderByCreatedAtDesc(Long userId);
+
+    long countByUserIdAndRetroTrue(Long userId);
+
+    @Query("SELECT COUNT(g) FROM Game g WHERE g.userId = :userId AND g.status = com.memorycard.entity.GameStatus.COMPLETED AND g.completedAt >= :from")
+    long countCompletedSince(@Param("userId") Long userId, @Param("from") java.time.LocalDate from);
+
+    @Query("SELECT g.platform, COUNT(g) FROM Game g WHERE g.userId = :userId AND g.platform IS NOT NULL GROUP BY g.platform ORDER BY COUNT(g) DESC")
+    List<Object[]> countByPlatform(@Param("userId") Long userId);
+
+    @Query("SELECT g FROM Game g WHERE g.userId IN (SELECT u.id FROM User u WHERE u.communityVisible = true) AND g.status = com.memorycard.entity.GameStatus.COMPLETED ORDER BY g.completedAt DESC NULLS LAST, g.createdAt DESC")
+    List<Game> findRecentPublicCompletions(org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT u.name, COUNT(g) FROM Game g, User u WHERE g.userId = u.id AND u.communityVisible = true AND g.status = com.memorycard.entity.GameStatus.COMPLETED GROUP BY u.id, u.name ORDER BY COUNT(g) DESC")
+    List<Object[]> findCommunityLeaderboard(org.springframework.data.domain.Pageable pageable);
 }

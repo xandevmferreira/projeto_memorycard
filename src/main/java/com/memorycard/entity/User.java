@@ -27,6 +27,15 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "community_visible", nullable = false)
+    private boolean communityVisible;
+
+    @Column(name = "retro_achievements_username", length = 100)
+    private String retroAchievementsUsername;
+
+    @Column(name = "retro_achievements_api_key")
+    private String retroAchievementsApiKey;
+
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();
@@ -79,4 +88,11 @@ public class User {
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
+
+    public boolean isCommunityVisible() { return communityVisible; }
+    public void setCommunityVisible(boolean communityVisible) { this.communityVisible = communityVisible; }
+    public String getRetroAchievementsUsername() { return retroAchievementsUsername; }
+    public void setRetroAchievementsUsername(String retroAchievementsUsername) { this.retroAchievementsUsername = retroAchievementsUsername; }
+    public String getRetroAchievementsApiKey() { return retroAchievementsApiKey; }
+    public void setRetroAchievementsApiKey(String retroAchievementsApiKey) { this.retroAchievementsApiKey = retroAchievementsApiKey; }
 }

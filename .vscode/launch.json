@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "MemoryCard (com build)",
+            "request": "launch",
+            "mainClass": "com.memorycard.MemorycardApplication",
+            "projectName": "memorycard",
+            "preLaunchTask": "memorycard: prepare"
+        }
+    ]
+}

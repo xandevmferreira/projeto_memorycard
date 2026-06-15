@@ -1,5 +1,6 @@
 package com.memorycard.dto.request;
 
+import com.memorycard.entity.CompletionType;
 import com.memorycard.entity.GameStatus;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
@@ -14,5 +15,11 @@ public record GameRequest(
         @DecimalMin("0") @DecimalMax("10") BigDecimal externalRating,
         String notes,
         LocalDate startedAt,
-        LocalDate completedAt
+        LocalDate completedAt,
+        CompletionType completionType,
+        @Size(max = 500) String tags,
+        boolean retro,
+        @Size(max = 100) String emulator,
+        Integer retroAchievementsGameId,
+        Integer retroConsoleId
 ) {}

@@ -13,6 +13,8 @@
         <div class="nav-links">
             <a th:href="@{/dashboard}">Dashboard</a>
             <a th:href="@{/games}">Meus Jogos</a>
+            <a th:href="@{/lists}">Listas</a>
+            <a th:href="@{/profile}">Perfil</a>
             <form th:action="@{/logout}" method="post" class="logout-form">
                 <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
             </form>
@@ -27,7 +29,14 @@
         <div>
             <a th:href="@{/games}" class="back-link">← Voltar</a>
             <h1 th:text="${game.title}">Título</h1>
-            <span class="badge" th:text="${game.status.getLabel()}">Jogando</span>
+            <div class="badge-row">
+                <span class="badge" th:text="${game.status.getLabel()}">Jogando</span>
+                <span th:if="${game.completionType}" class="badge badge-muted" th:text="${game.completionType.getLabel()}">Tipo</span>
+                <span th:if="${game.retro}" class="badge badge-retro">Retro</span>
+            </div>
+            <div th:if="${game.tags}" class="tag-list">
+                <span class="tag-chip" th:text="${game.tags}">tags</span>
+            </div>
         </div>
         <div class="header-actions">
             <a th:if="${game.status.name() != 'COMPLETED'}"
@@ -52,6 +61,10 @@
                     <dt>Plataforma</dt>
                     <dd th:text="${game.platform}">PC</dd>
                 </div>
+                <div th:if="${game.emulator}">
+                    <dt>Emulador</dt>
+                    <dd th:text="${game.emulator}">RetroArch</dd>
+                </div>
                 <div>
                     <dt>Horas jogadas</dt>
                     <dd th:text="${game.hoursPlayed} + 'h'">0h</dd>
@@ -59,10 +72,6 @@
                 <div th:if="${game.personalRating}">
                     <dt>Nota pessoal</dt>
                     <dd th:text="${game.personalRating} + '/10'">0/10</dd>
-                </div>
-                <div th:if="${game.externalRating}">
-                    <dt>Nota externa</dt>
-                    <dd th:text="${game.externalRating} + '/10'">0/10</dd>
                 </div>
                 <div th:if="${game.startedAt}">
                     <dt>Início</dt>
@@ -77,34 +86,71 @@
                     <dd th:text="${game.notes}">Notas</dd>
                 </div>
             </dl>
-        </section>
 
-        <section class="card">
-            <h2>Screenshots</h2>
-
-            <form th:action="@{/games/{id}/screenshots(id=${game.id})}"
-                  method="post"
-                  enctype="multipart/form-data"
-                  class="upload-form">
-                <input type="file" name="file" accept="image/*" required>
-                <button type="submit" class="btn btn-primary btn-sm">Enviar print</button>
-            </form>
-
-            <div th:if="${#lists.isEmpty(game.screenshots)}" class="empty-state-small">
-                <p>Nenhum screenshot enviado.</p>
-            </div>
-
-            <div class="screenshots-grid" th:unless="${#lists.isEmpty(game.screenshots)}">
-                <div th:each="screenshot : ${game.screenshots}" class="screenshot-item">
-                    <img th:src="${screenshot.url}" alt="Screenshot">
-                    <form th:action="@{/games/{gameId}/screenshots/{screenshotId}/delete(gameId=${game.id}, screenshotId=${screenshot.id})}"
-                          method="post"
-                          onsubmit="return confirm('Remover este screenshot?');">
-                        <button type="submit" class="btn btn-danger btn-sm">Remover</button>
-                    </form>
+            <section th:if="${game.retro}" class="retro-panel">
+                <h3>🏆 RetroAchievements</h3>
+                <div th:if="${game.retroProgress}">
+                    <div class="progress-bar">
+                        <div class="progress-fill" th:style="'width:' + ${game.retroProgress.progressPercent()} + '%'"></div>
+                    </div>
+                    <p class="meta">
+                        <span th:text="${game.retroProgress.progressPercent()} + '%'">0%</span>
+                        ·
+                        <span th:text="${game.retroProgress.achievementsEarned()} + '/' + ${game.retroProgress.achievementsTotal()} + ' conquistas'">0/0</span>
+                    </p>
+                    <a th:href="${game.retroProgress.profileUrl()}" target="_blank" rel="noopener" class="link">Ver no RetroAchievements →</a>
                 </div>
-            </div>
+                <div th:unless="${game.retroProgress}">
+                    <p class="meta">Configure seu usuário e API key em <a th:href="@{/profile}">Perfil</a> e vincule o jogo no cadastro.</p>
+                </div>
+                <a th:if="${game.retroAchievementsGameId}" th:href="@{|/games/${game.id}/sync-retro|}" class="btn btn-ghost btn-sm">Atualizar progresso RA</a>
+            </section>
         </section>
+
+        <div class="detail-side">
+            <section class="card">
+                <h2>📓 Diário do jogador</h2>
+                <form th:action="@{/games/{id}/journal(id=${game.id})}" method="post" class="journal-form">
+                    <textarea name="content" rows="3" required placeholder="O que aconteceu hoje neste jogo?"></textarea>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="spoiler" value="true"> Contém spoiler
+                    </label>
+                    <button type="submit" class="btn btn-primary btn-sm">Adicionar entrada</button>
+                </form>
+                <div th:if="${#lists.isEmpty(game.journalEntries)}" class="empty-state-small">
+                    <p>Nenhuma entrada no diário ainda.</p>
+                </div>
+                <div class="journal-list" th:unless="${#lists.isEmpty(game.journalEntries)}">
+                    <article th:each="entry : ${game.journalEntries}" class="journal-entry" th:classappend="${entry.spoiler()} ? 'spoiler-entry' : ''">
+                        <time th:text="${#temporals.format(entry.createdAt(), 'dd/MM/yyyy HH:mm')}">Data</time>
+                        <p th:if="${entry.spoiler()}" class="spoiler-warning">⚠️ Spoiler</p>
+                        <p th:text="${entry.content()}">Conteúdo</p>
+                        <form th:action="@{/games/{gameId}/journal/{entryId}/delete(gameId=${game.id}, entryId=${entry.id})}" method="post">
+                            <button type="submit" class="btn btn-ghost btn-sm">Remover</button>
+                        </form>
+                    </article>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Screenshots</h2>
+                <form th:action="@{/games/{id}/screenshots(id=${game.id})}" method="post" enctype="multipart/form-data" class="upload-form">
+                    <input type="file" name="file" accept="image/*" required>
+                    <button type="submit" class="btn btn-primary btn-sm">Enviar print</button>
+                </form>
+                <div th:if="${#lists.isEmpty(game.screenshots)}" class="empty-state-small">
+                    <p>Nenhum screenshot enviado.</p>
+                </div>
+                <div class="screenshots-grid" th:unless="${#lists.isEmpty(game.screenshots)}">
+                    <div th:each="screenshot : ${game.screenshots}" class="screenshot-item">
+                        <img th:src="${screenshot.url}" alt="Screenshot">
+                        <form th:action="@{/games/{gameId}/screenshots/{screenshotId}/delete(gameId=${game.id}, screenshotId=${screenshot.id})}" method="post">
+                            <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 </main>
 

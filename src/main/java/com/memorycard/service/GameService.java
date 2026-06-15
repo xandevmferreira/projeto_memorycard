@@ -2,12 +2,16 @@ package com.memorycard.service;
 
 import com.memorycard.dto.request.GameRequest;
 import com.memorycard.dto.response.GameResponse;
+import com.memorycard.dto.response.RetroAchievementProgress;
+import com.memorycard.entity.CompletionType;
 import com.memorycard.entity.Game;
 import com.memorycard.entity.GameScreenshot;
 import com.memorycard.entity.GameStatus;
+import com.memorycard.entity.User;
 import com.memorycard.exception.ResourceNotFoundException;
 import com.memorycard.repository.GameRepository;
 import com.memorycard.repository.GameScreenshotRepository;
+import com.memorycard.repository.UserRepository;
 import com.memorycard.storage.StorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,17 +30,26 @@ public class GameService {
     private final StorageService storageService;
     private final ExternalGameApiService externalGameApiService;
     private final CoverImageService coverImageService;
+    private final RetroAchievementsService retroAchievementsService;
+    private final GameJournalService gameJournalService;
+    private final UserRepository userRepository;
 
     public GameService(GameRepository gameRepository,
                        GameScreenshotRepository screenshotRepository,
                        StorageService storageService,
                        ExternalGameApiService externalGameApiService,
-                       CoverImageService coverImageService) {
+                       CoverImageService coverImageService,
+                       RetroAchievementsService retroAchievementsService,
+                       GameJournalService gameJournalService,
+                       UserRepository userRepository) {
         this.gameRepository = gameRepository;
         this.screenshotRepository = screenshotRepository;
         this.storageService = storageService;
         this.externalGameApiService = externalGameApiService;
         this.coverImageService = coverImageService;
+        this.retroAchievementsService = retroAchievementsService;
+        this.gameJournalService = gameJournalService;
+        this.userRepository = userRepository;
     }
 
     @Transactional(readOnly = true)
@@ -50,7 +63,16 @@ public class GameService {
     public GameResponse findById(Long userId, Long gameId) {
         Game game = getOwnedGame(userId, gameId);
         List<GameScreenshot> screenshots = screenshotRepository.findByGameIdOrderByUploadedAtDesc(gameId);
-        return GameMapper.toResponse(game, screenshots, storageService, coverImageService);
+        User user = userRepository.findById(userId).orElse(null);
+        RetroAchievementProgress retroProgress = resolveRetroProgress(user, game);
+        return GameMapper.toResponse(
+                game,
+                screenshots,
+                gameJournalService.findByGame(userId, gameId),
+                retroProgress,
+                storageService,
+                coverImageService
+        );
     }
 
     @Transactional
@@ -58,6 +80,7 @@ public class GameService {
         Game game = new Game();
         game.setUserId(userId);
         applyRequest(game, request);
+        syncRetroProgress(userId, game);
         enrichFromExternalApi(game, request.title());
         applyCover(game, userId, cover, externalCoverUrl);
 
@@ -69,6 +92,7 @@ public class GameService {
     public GameResponse update(Long userId, Long gameId, GameRequest request, MultipartFile cover, String externalCoverUrl) {
         Game game = getOwnedGame(userId, gameId);
         applyRequest(game, request);
+        syncRetroProgress(userId, game);
 
         boolean hasUploadedCover = cover != null && !cover.isEmpty();
         boolean hasSelectedCover = externalCoverUrl != null && !externalCoverUrl.isBlank();
@@ -165,6 +189,9 @@ public class GameService {
         if (game.getCompletedAt() == null) {
             game.setCompletedAt(java.time.LocalDate.now());
         }
+        if (game.getCompletionType() == null) {
+            game.setCompletionType(CompletionType.STORY);
+        }
         Game savedGame = gameRepository.save(game);
         List<GameScreenshot> screenshots = screenshotRepository.findByGameIdOrderByUploadedAtDesc(gameId);
         return GameMapper.toResponse(savedGame, screenshots, storageService, coverImageService);
@@ -211,6 +238,51 @@ public class GameService {
                 .orElseThrow(() -> new ResourceNotFoundException("Jogo não encontrado"));
     }
 
+    @Transactional
+    public GameResponse syncRetroProgressForGame(Long userId, Long gameId) {
+        Game game = getOwnedGame(userId, gameId);
+        syncRetroProgress(userId, game);
+        Game saved = gameRepository.save(game);
+        return findById(userId, saved.getId());
+    }
+
+    private void syncRetroProgress(Long userId, Game game) {
+        if (!game.isRetro() || game.getRetroAchievementsGameId() == null) {
+            return;
+        }
+        userRepository.findById(userId).ifPresent(user -> {
+            java.math.BigDecimal percent = retroAchievementsService.syncProgressToGame(
+                    user, game.getRetroAchievementsGameId());
+            if (percent != null) {
+                game.setRetroProgressPercent(percent);
+            }
+        });
+    }
+
+    private RetroAchievementProgress resolveRetroProgress(User user, Game game) {
+        if (!game.isRetro() || game.getRetroAchievementsGameId() == null || user == null) {
+            return null;
+        }
+        RetroAchievementProgress progress = retroAchievementsService.fetchProgress(
+                user, game.getRetroAchievementsGameId());
+        if (progress != null) {
+            return progress;
+        }
+        if (game.getRetroProgressPercent() != null) {
+            return new RetroAchievementProgress(
+                    game.getRetroAchievementsGameId(),
+                    game.getTitle(),
+                    game.getPlatform(),
+                    game.getRetroProgressPercent(),
+                    0,
+                    0,
+                    "https://retroachievements.org/game/" + game.getRetroAchievementsGameId(),
+                    false
+            );
+        }
+        return null;
+    }
+
     private void applyRequest(Game game, GameRequest request) {
         game.setTitle(request.title());
         game.setPlatform(request.platform());
@@ -233,6 +305,24 @@ public class GameService {
                 game.setCompletedAt(null);
             }
         }
+
+        game.setCompletionType(request.completionType());
+        game.setTags(normalizeTags(request.tags()));
+        game.setRetro(request.retro());
+        game.setEmulator(blankToNull(request.emulator()));
+        game.setRetroAchievementsGameId(request.retroAchievementsGameId());
+        game.setRetroConsoleId(request.retroConsoleId());
+    }
+
+    private String normalizeTags(String tags) {
+        if (tags == null || tags.isBlank()) {
+            return null;
+        }
+        return tags.trim();
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     public record ScreenshotUploadResult(Long id, String url, java.time.Instant uploadedAt) {}
