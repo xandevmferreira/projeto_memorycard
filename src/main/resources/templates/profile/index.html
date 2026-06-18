@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('Perfil')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav('profile')}"></nav>
+
+<main class="container">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <header class="page-header">
+        <h1>Meu perfil</h1>
+        <a th:href="@{/users/{id}(id=${user.id})}" class="btn btn-ghost">Ver perfil público</a>
+    </header>
+
+    <section class="card" th:if="${badges}">
+        <h2>Distintivos da comunidade</h2>
+        <div class="badges-grid">
+            <article th:each="badge : ${badges}"
+                     class="badge-card"
+                     th:classappend="${badge.earned()} ? 'earned' : 'locked'">
+                <span class="badge-icon" th:text="${badge.icon()}">🏆</span>
+                <h3 th:text="${badge.name()}">Nome</h3>
+                <p th:text="${badge.description()}">Descrição</p>
+                <time th:if="${badge.earned() && badge.earnedAt() != null}"
+                      th:text="${#temporals.format(badge.earnedAt(), 'dd/MM/yyyy')}">Data</time>
+                <span th:unless="${badge.earned()}" class="badge badge-muted">Bloqueado</span>
+            </article>
+        </div>
+    </section>
+
+    <form th:action="@{/profile}" method="post" class="card form-card">
+        <div class="form-group">
+            <label>Nome</label>
+            <input type="text" th:value="${user.name}" disabled>
+        </div>
+        <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" th:value="${user.email}" disabled>
+        </div>
+
+        <section class="form-section">
+            <h2>👥 Comunidade (opt-in)</h2>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" name="communityVisible" value="true" th:checked="${user.communityVisible}">
+                    Mostrar meus zerados no ranking da comunidade
+                </label>
+                <p class="field-hint">Seu nome e jogos zerados aparecem na dashboard para outros usuários.</p>
+            </div>
+        </section>
+
+        <section class="form-section">
+            <h2>🏆 RetroAchievements</h2>
+            <p class="field-hint">Obtenha sua API key em <a href="https://retroachievements.org/controlpanel.php" target="_blank" rel="noopener">retroachievements.org/controlpanel</a></p>
+            <div class="form-group">
+                <label for="retroAchievementsUsername">Usuário RetroAchievements</label>
+                <input type="text" id="retroAchievementsUsername" name="retroAchievementsUsername"
+                       th:value="${user.retroAchievementsUsername}" placeholder="Seu nick no RA">
+            </div>
+            <div class="form-group">
+                <label for="retroAchievementsApiKey">API Key</label>
+                <input type="password" id="retroAchievementsApiKey" name="retroAchievementsApiKey"
+                       th:placeholder="${hasRaApiKey} ? '•••••••• (deixe em branco para manter)' : 'Cole sua API key'">
+            </div>
+        </section>
+
+        <div class="form-actions">
+            <a th:href="@{/dashboard}" class="btn btn-ghost">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Salvar perfil</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

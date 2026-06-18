@@ -1,0 +1,42 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "memorycard: stop",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/scripts/stop.ps1"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "memorycard: build",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/scripts/build.ps1"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$javac"
+        },
+        {
+            "label": "memorycard: prepare",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "memorycard: stop",
+                "memorycard: build"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

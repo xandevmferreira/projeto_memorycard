@@ -1,0 +1,17 @@
+[
+  {"title": "Super Mario World", "raGameId": 228, "consoleId": 3, "consoleName": "SNES", "aliases": ["mario world", "smw", "super mario"]},
+  {"title": "Final Fantasy III", "raGameId": 1129, "consoleId": 3, "consoleName": "SNES", "aliases": ["ff3", "ff iii", "final fantasy 3", "ff6 japan"]},
+  {"title": "Final Fantasy VI", "raGameId": 1129, "consoleId": 3, "consoleName": "SNES", "aliases": ["ff6", "final fantasy 6"]},
+  {"title": "Chrono Trigger", "raGameId": 319, "consoleId": 3, "consoleName": "SNES", "aliases": ["chrono"]},
+  {"title": "The Legend of Zelda: A Link to the Past", "raGameId": 335, "consoleId": 3, "consoleName": "SNES", "aliases": ["zelda snes", "link to the past", "alttp"]},
+  {"title": "Super Metroid", "raGameId": 236, "consoleId": 3, "consoleName": "SNES", "aliases": ["metroid snes", "super metroid"]},
+  {"title": "Donkey Kong Country", "raGameId": 576, "consoleId": 3, "consoleName": "SNES", "aliases": ["dkc", "donkey kong"]},
+  {"title": "Mega Man X", "raGameId": 337, "consoleId": 3, "consoleName": "SNES", "aliases": ["megaman x", "mega man"]},
+  {"title": "Castlevania: Symphony of the Night", "raGameId": 1157, "consoleId": 12, "consoleName": "PlayStation", "aliases": ["sotn", "castlevania psx"]},
+  {"title": "Final Fantasy VII", "raGameId": 134, "consoleId": 12, "consoleName": "PlayStation", "aliases": ["ff7", "final fantasy 7"]},
+  {"title": "Super Mario Bros. 3", "raGameId": 1462, "consoleId": 4, "consoleName": "NES", "aliases": ["mario 3", "smb3"]},
+  {"title": "The Legend of Zelda", "raGameId": 622, "consoleId": 4, "consoleName": "NES", "aliases": ["zelda nes", "zelda 1"]},
+  {"title": "Pokémon Emerald", "raGameId": 967, "consoleId": 5, "consoleName": "GBA", "aliases": ["pokemon emerald", "emerald"]},
+  {"title": "Metroid Fusion", "raGameId": 1270, "consoleId": 5, "consoleName": "GBA", "aliases": ["metroid gba", "fusion"]},
+  {"title": "EarthBound", "raGameId": 1128, "consoleId": 3, "consoleName": "SNES", "aliases": ["mother 2", "earthbound"]}
+]

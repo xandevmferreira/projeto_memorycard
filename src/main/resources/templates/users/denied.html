@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('Perfil privado')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav('friends')}"></nav>
+
+<main class="container">
+    <section class="card empty-state">
+        <h1>Perfil privado</h1>
+        <p th:text="${error}">Você precisa ser amigo deste usuário.</p>
+        <a th:href="@{/friends}" class="btn btn-primary">Gerenciar amigos</a>
+    </section>
+</main>
+</body>
+</html>

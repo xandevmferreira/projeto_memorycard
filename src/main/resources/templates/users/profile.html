@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head(${profile.name()})}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav('')}"></nav>
+
+<main class="container">
+    <header class="page-header">
+        <div>
+            <a th:if="${!profile.ownProfile()}" th:href="@{/friends}" class="back-link">← Voltar</a>
+            <h1 th:text="${profile.name()}">Jogador</h1>
+            <p class="field-hint" th:if="${profile.memberSince()}">
+                Membro desde <span th:text="${#temporals.format(profile.memberSince(), 'dd/MM/yyyy')}">data</span>
+            </p>
+        </div>
+        <a th:if="${profile.ownProfile()}" th:href="@{/profile}" class="btn btn-ghost">Editar meu perfil</a>
+    </header>
+
+    <section class="stats-grid card">
+        <div class="stat-item">
+            <span class="stat-value" th:text="${profile.totalGames()}">0</span>
+            <span class="stat-label">Jogos</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" th:text="${profile.completedGames()}">0</span>
+            <span class="stat-label">Zerados</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" th:text="${profile.totalHours()} + 'h'">0h</span>
+            <span class="stat-label">Horas</span>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Distintivos</h2>
+        <div class="badges-grid">
+            <article th:each="badge : ${profile.badges()}"
+                     class="badge-card"
+                     th:classappend="${badge.earned()} ? 'earned' : 'locked'">
+                <span class="badge-icon" th:text="${badge.icon()}">🏆</span>
+                <h3 th:text="${badge.name()}">Nome</h3>
+                <p th:text="${badge.description()}">Descrição</p>
+                <time th:if="${badge.earned() && badge.earnedAt() != null}"
+                      th:text="${#temporals.format(badge.earnedAt(), 'dd/MM/yyyy')}">Data</time>
+                <span th:unless="${badge.earned()}" class="badge badge-muted">Bloqueado</span>
+            </article>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Biblioteca</h2>
+        <div th:if="${#lists.isEmpty(profile.games())}" class="empty-state-small">
+            <p>Nenhum jogo cadastrado ainda.</p>
+        </div>
+        <div class="games-grid" th:unless="${#lists.isEmpty(profile.games())}">
+            <article th:each="game : ${profile.games()}" class="game-card">
+                <img th:if="${game.coverUrl()}" th:src="${game.coverUrl()}" alt="" class="game-cover">
+                <div th:unless="${game.coverUrl()}" class="game-cover placeholder">🎮</div>
+                <div class="game-card-body">
+                    <h3 th:text="${game.title()}">Título</h3>
+                    <span class="badge" th:text="${game.status().getLabel()}">Status</span>
+                    <p th:if="${game.platform()}" class="meta" th:text="${game.platform()}">PC</p>
+                    <p th:if="${game.metacriticScore()}" class="meta">MC <span th:text="${game.metacriticScore()}">90</span>/100</p>
+                    <p th:if="${game.personalRating()}" class="meta">Nota pessoal: <span th:text="${game.personalRating()}">8</span>/10</p>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

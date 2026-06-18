@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('Cadastro')}"></head>
+<body class="auth-page">
+<div class="auth-card">
+    <a th:href="@{/}" class="auth-brand">
+        <img th:src="@{/img/logo-mark.svg}" alt="MemoryCard">
+        <span class="auth-brand-title"><span class="logo-memory">Memory</span><span class="logo-card">Card</span></span>
+    </a>
+    <p class="subtitle">Comece seu catálogo de jogos</p>
+
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <form th:action="@{/register}" th:object="${registerRequest}" method="post">
+        <div class="form-group">
+            <label for="name">Nome</label>
+            <input type="text" id="name" th:field="*{name}" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" th:field="*{email}" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Senha</label>
+            <input type="password" id="password" th:field="*{password}" minlength="6" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Cadastrar</button>
+    </form>
+
+    <p class="auth-footer">Já tem conta? <a th:href="@{/login}">Faça login</a></p>
+</div>
+</body>
+</html>

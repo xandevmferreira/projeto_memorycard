@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" fill="none" aria-hidden="true">
+  <rect x="4" y="4" width="40" height="40" rx="8" fill="url(#logoGrad)" stroke="#8b7cf7" stroke-width="1.5"/>
+  <rect x="10" y="28" width="5" height="7" rx="1.2" fill="#ffd166"/>
+  <rect x="17" y="28" width="5" height="7" rx="1.2" fill="#ffd166"/>
+  <rect x="24" y="28" width="5" height="7" rx="1.2" fill="#ffd166"/>
+  <rect x="31" y="28" width="4" height="7" rx="1.2" fill="#ffd166"/>
+  <rect x="11" y="12" width="26" height="11" rx="2.5" fill="#fff" fill-opacity=".12"/>
+  <circle cx="24" cy="17.5" r="3.5" fill="#fff" fill-opacity=".35"/>
+  <text x="54" y="32" font-family="Segoe UI, system-ui, sans-serif" font-size="22" font-weight="700" fill="#e8eaed">Memory</text>
+  <text x="144" y="32" font-family="Segoe UI, system-ui, sans-serif" font-size="22" font-weight="700" fill="#8b7cf7">Card</text>
+  <defs>
+    <linearGradient id="logoGrad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8b7cf7"/>
+      <stop offset="1" stop-color="#6c5ce7"/>
+    </linearGradient>
+  </defs>
+</svg>

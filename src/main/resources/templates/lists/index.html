@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('Listas')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav('lists')}"></nav>
+
+<main class="container">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <header class="page-header">
+        <h1>Minhas listas</h1>
+    </header>
+
+    <section class="card">
+        <h2>Nova lista</h2>
+        <form th:action="@{/lists}" method="post" class="list-create-form">
+            <input type="text" name="name" required placeholder="Ex: JRPGs dos 90, Retro SNES...">
+            <input type="text" name="description" placeholder="Descrição opcional">
+            <button type="submit" class="btn btn-primary btn-sm">Criar lista</button>
+        </form>
+    </section>
+
+    <div th:if="${#lists.isEmpty(lists)}" class="empty-state card">
+        <p>Nenhuma lista criada. Crie coleções como "Zerados no emulador" ou "Fila de jogos".</p>
+    </div>
+
+    <div class="lists-grid" th:unless="${#lists.isEmpty(lists)}">
+        <a th:each="list : ${lists}" th:href="@{/lists/{id}(id=${list.id})}" class="list-card card">
+            <h3 th:text="${list.name()}">Lista</h3>
+            <p th:if="${list.description()}" class="meta" th:text="${list.description()}">Descrição</p>
+            <span class="badge" th:text="${list.gameCount()} + ' jogos'">0 jogos</span>
+        </a>
+    </div>
+</main>
+</body>
+</html>

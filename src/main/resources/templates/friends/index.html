@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('Amigos')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav('friends')}"></nav>
+
+<main class="container">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <header class="page-header">
+        <h1>Amigos</h1>
+    </header>
+
+    <section class="card form-card">
+        <h2>Adicionar amigo</h2>
+        <form th:action="@{/friends/invite}" method="post" class="list-create-form">
+            <input type="email" name="email" required placeholder="E-mail do amigo no MemoryCard">
+            <button type="submit" class="btn btn-primary">Enviar convite</button>
+        </form>
+        <p class="field-hint">Seu amigo precisa ter conta no MemoryCard. Após aceitar, vocês poderão ver a biblioteca um do outro.</p>
+    </section>
+
+    <section class="card" th:if="${!#lists.isEmpty(pendingIncoming)}">
+        <h2>Convites recebidos</h2>
+        <ul class="friend-list">
+            <li th:each="req : ${pendingIncoming}" class="friend-item">
+                <span th:text="${req.name()}">Nome</span>
+                <div class="friend-actions">
+                    <form th:action="@{/friends/{id}/accept(id=${req.friendshipId()})}" method="post">
+                        <button type="submit" class="btn btn-primary btn-sm">Aceitar</button>
+                    </form>
+                    <form th:action="@{/friends/{id}/reject(id=${req.friendshipId()})}" method="post">
+                        <button type="submit" class="btn btn-ghost btn-sm">Recusar</button>
+                    </form>
+                </div>
+            </li>
+        </ul>
+    </section>
+
+    <section class="card" th:if="${!#lists.isEmpty(pendingOutgoing)}">
+        <h2>Convites enviados</h2>
+        <ul class="friend-list">
+            <li th:each="req : ${pendingOutgoing}" class="friend-item">
+                <span th:text="${req.name()}">Nome</span>
+                <span class="badge badge-muted">Aguardando</span>
+            </li>
+        </ul>
+    </section>
+
+    <section class="card">
+        <h2>Meus amigos</h2>
+        <div th:if="${#lists.isEmpty(friends)}" class="empty-state-small">
+            <p>Nenhum amigo ainda. Convide alguém pelo e-mail!</p>
+        </div>
+        <ul class="friend-list" th:unless="${#lists.isEmpty(friends)}">
+            <li th:each="friend : ${friends}" class="friend-item">
+                <a th:href="@{/users/{id}(id=${friend.userId()})}" th:text="${friend.name()}">Nome</a>
+                <div class="friend-actions">
+                    <a th:href="@{/users/{id}(id=${friend.userId()})}" class="btn btn-ghost btn-sm">Ver perfil</a>
+                    <form th:action="@{/friends/{id}/remove(id=${friend.friendshipId()})}" method="post"
+                          onsubmit="return confirm('Remover este amigo?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                    </form>
+                </div>
+            </li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>

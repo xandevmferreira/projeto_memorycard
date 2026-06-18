@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav('dashboard')}"></nav>
+
+<main class="container">
+    <header class="page-header">
+        <div>
+            <h1>Olá, <span th:text="${user.name}">Usuário</span>!</h1>
+            <p class="subtitle">Acompanhe seu progresso nos jogos</p>
+        </div>
+        <a th:href="@{/games/new}" class="btn btn-primary btn-lg">+ Adicionar jogo</a>
+    </header>
+
+    <section class="stats-grid stats-grid-extended">
+        <div class="stat-card">
+            <span class="stat-label">Jogos cadastrados</span>
+            <span class="stat-value" th:text="${dashboard.totalGames}">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Jogos zerados</span>
+            <span class="stat-value" th:text="${dashboard.completedGames}">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Horas totais</span>
+            <span class="stat-value" th:text="${dashboard.totalHoursPlayed} + 'h'">0h</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Taxa de conclusão</span>
+            <span class="stat-value" th:text="${dashboard.stats.completionRatePercent()} + '%'">0%</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Zerados em 2026</span>
+            <span class="stat-value" th:text="${dashboard.stats.completedThisYear()}">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Jogos retro</span>
+            <span class="stat-value" th:text="${dashboard.stats.retroGames()}">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Plataforma #1</span>
+            <span class="stat-value stat-small" th:text="${dashboard.stats.topPlatform()}">—</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Entradas no diário</span>
+            <span class="stat-value" th:text="${dashboard.stats.journalEntries()}">0</span>
+        </div>
+    </section>
+
+    <div class="dashboard-grid">
+        <section class="card">
+            <div class="card-header">
+                <h2>Últimos jogos adicionados</h2>
+                <a th:href="@{/games}" class="link">Ver todos</a>
+            </div>
+            <div th:if="${#lists.isEmpty(dashboard.recentGames)}" class="empty-state">
+                <p>Nenhum jogo cadastrado ainda.</p>
+                <a th:href="@{/games/new}" class="btn btn-primary">Adicionar primeiro jogo</a>
+            </div>
+            <div class="game-list-mini" th:unless="${#lists.isEmpty(dashboard.recentGames)}">
+                <a th:each="game : ${dashboard.recentGames}" th:href="@{/games/{id}(id=${game.id})}" class="game-mini-item">
+                    <img th:if="${game.coverUrl}" th:src="${game.coverUrl}" alt="Capa" class="game-mini-cover">
+                    <div th:unless="${game.coverUrl}" class="game-mini-cover placeholder">🎮</div>
+                    <div>
+                        <strong th:text="${game.title}">Título</strong>
+                        <span class="badge" th:text="${game.status.getLabel()}">Jogando</span>
+                        <span th:if="${game.retro}" class="badge badge-retro">Retro</span>
+                        <p class="meta" th:text="${game.platform}">Plataforma</p>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>🏆 Comunidade</h2>
+                <a th:href="@{/profile}" class="link">Configurar perfil</a>
+            </div>
+            <h3 class="section-subtitle">Ranking de zerados</h3>
+            <div th:if="${#lists.isEmpty(dashboard.communityLeaderboard)}" class="empty-state-small">
+                <p>Ative a visibilidade em <a th:href="@{/profile}">Perfil</a> para aparecer aqui.</p>
+            </div>
+            <div class="leaderboard" th:unless="${#lists.isEmpty(dashboard.communityLeaderboard)}">
+                <div th:each="entry, stat : ${dashboard.communityLeaderboard}" class="leaderboard-item">
+                    <span class="popular-rank" th:text="${stat.count}">1</span>
+                    <strong th:text="${entry.playerName()}">Jogador</strong>
+                    <span class="meta" th:text="${entry.completedGames()} + ' zerados'">0</span>
+                </div>
+            </div>
+            <h3 class="section-subtitle">Zerados recentes na comunidade</h3>
+            <div th:if="${#lists.isEmpty(dashboard.communityCompletions)}" class="empty-state-small">
+                <p>Nenhum zerado público ainda.</p>
+            </div>
+            <div class="community-list" th:unless="${#lists.isEmpty(dashboard.communityCompletions)}">
+                <div th:each="item : ${dashboard.communityCompletions}" class="community-item">
+                    <strong th:text="${item.playerName()}">Jogador</strong>
+                    <span th:text="'zerou ' + ${item.gameTitle()}">jogo</span>
+                    <span class="meta" th:if="${item.completedAt()}" th:text="${#temporals.format(item.completedAt(), 'dd/MM/yyyy')}">data</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="card news-section">
+        <div class="card-header">
+            <h2>Notícias do mundo dos games</h2>
+            <span class="badge badge-muted">Atualizado via RSS</span>
+        </div>
+        <div th:if="${#lists.isEmpty(dashboard.gamingNews)}" class="empty-state-small">
+            <p>Notícias temporariamente indisponíveis.</p>
+        </div>
+        <div class="news-grid" th:unless="${#lists.isEmpty(dashboard.gamingNews)}">
+            <a th:each="item : ${dashboard.gamingNews}" th:href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-card">
+                <img th:if="${item.imageUrl}" th:src="${item.imageUrl}" alt="" class="news-image">
+                <div th:unless="${item.imageUrl}" class="news-image placeholder">📰</div>
+                <div class="news-body">
+                    <span class="news-source" th:text="${item.source}">Fonte</span>
+                    <h3 th:text="${item.title}">Título</h3>
+                    <time th:if="${item.publishedAt}" class="news-date" th:text="${#temporals.format(item.publishedAt, 'dd/MM/yyyy')}">Data</time>
+                </div>
+            </a>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/fab :: fab}"></div>
+<footer class="footer"><div class="container"><p>MemoryCard — seu catálogo pessoal de jogos</p></div></footer>
+</body>
+</html>

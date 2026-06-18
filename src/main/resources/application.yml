@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: memorycard
+  datasource:
+    url: jdbc:postgresql://localhost:5432/memorycard
+    username: memorycard
+    password: memorycard
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-this-secret-key-to-a-long-random-string-at-least-256-bits}
+    expiration-ms: 86400000
+  storage:
+    type: local
+    local:
+      base-path: ${STORAGE_PATH:./uploads}
+      base-url: /uploads
+  rawg:
+    api-key: ${RAWG_API_KEY:}
+    base-url: https://api.rawg.io/api
+    enabled: ${RAWG_ENABLED:false}
+  retroachievements:
+    enabled: ${RA_ENABLED:false}
+    api-key: ${RA_API_KEY:}
+    base-url: https://retroachievements.org
+  news:
+    enabled: true
+    cache-minutes: 30
+    max-items: 8
+    feeds:
+      - name: IGN
+        url: https://feeds.feedburner.com/ign/games-all
+      - name: Polygon
+        url: https://www.polygon.com/rss/index.xml
+      - name: Kotaku
+        url: https://kotaku.com/rss
+
+logging:
+  level:
+    com.memorycard: DEBUG

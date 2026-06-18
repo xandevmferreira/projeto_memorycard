@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="nav(active)" class="navbar">
+    <div class="container nav-content">
+        <a th:href="@{/dashboard}" class="logo brand">
+            <img th:src="@{/img/logo-mark.svg}" alt="" class="logo-icon" width="36" height="36">
+            <span class="logo-text"><span class="logo-memory">Memory</span><span class="logo-card">Card</span></span>
+        </a>
+        <div class="nav-links">
+            <a th:href="@{/dashboard}" th:classappend="${active == 'dashboard'} ? 'active' : ''">Dashboard</a>
+            <a th:href="@{/games}" th:classappend="${active == 'games'} ? 'active' : ''">Meus Jogos</a>
+            <a th:href="@{/lists}" th:classappend="${active == 'lists'} ? 'active' : ''">Listas</a>
+            <a th:href="@{/friends}" th:classappend="${active == 'friends'} ? 'active' : ''">Amigos</a>
+            <a th:href="@{/profile}" th:classappend="${active == 'profile'} ? 'active' : ''">Perfil</a>
+            <a th:href="@{/games/new}" class="btn btn-primary btn-sm">+ Novo Jogo</a>
+            <form th:action="@{/logout}" method="post" class="logout-form">
+                <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
+            </form>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

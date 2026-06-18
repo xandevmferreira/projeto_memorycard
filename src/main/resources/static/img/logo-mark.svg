@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+  <rect x="8" y="6" width="32" height="36" rx="5" fill="url(#mcGrad)" stroke="#8b7cf7" stroke-width="1.5"/>
+  <rect x="13" y="32" width="4" height="6" rx="1.2" fill="#ffd166"/>
+  <rect x="19" y="32" width="4" height="6" rx="1.2" fill="#ffd166"/>
+  <rect x="25" y="32" width="4" height="6" rx="1.2" fill="#ffd166"/>
+  <rect x="31" y="32" width="3" height="6" rx="1.2" fill="#ffd166"/>
+  <rect x="14" y="14" width="20" height="10" rx="2" fill="#fff" fill-opacity=".12"/>
+  <circle cx="24" cy="19" r="3" fill="#fff" fill-opacity=".35"/>
+  <defs>
+    <linearGradient id="mcGrad" x1="8" y1="6" x2="40" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8b7cf7"/>
+      <stop offset="1" stop-color="#6c5ce7"/>
+    </linearGradient>
+  </defs>
+</svg>
