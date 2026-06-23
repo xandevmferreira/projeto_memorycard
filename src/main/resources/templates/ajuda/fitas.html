@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('Tutorial — Fitas digitais')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav('games')}"></nav>
+
+<main class="container help-page">
+    <header class="page-header">
+        <h1>📼 Tutorial — Fitas digitais</h1>
+        <p class="field-hint">Grave momentos do jogo, reviva no navegador ou exporte pro RetroArch — como uma fita de console.</p>
+    </header>
+
+    <section class="card help-step">
+        <h2>1. Cadastre o jogo com a plataforma certa</h2>
+        <p>Em <strong>Novo jogo</strong> ou <strong>Editar</strong>, escolha a plataforma na lista sugerida.</p>
+        <ul>
+            <li>Plataformas com <span class="badge badge-retro">Web</span> podem rodar no navegador (SNES, PS1, GBA, etc.).</li>
+            <li>PC, Switch, Xbox etc. usam <strong>Gravar fita</strong> + exportar <strong>.zip</strong> — sem player web.</li>
+        </ul>
+    </section>
+
+    <section class="card help-step">
+        <h2>2. Gravar fita (depois de jogar)</h2>
+        <ol>
+            <li>Abra a página do jogo → seção <strong>Fitas digitais</strong>.</li>
+            <li>Clique em <strong>Gravar fita</strong>.</li>
+            <li>Preencha nome e memória (“onde parei”, sentimento da época).</li>
+            <li>Anexe o <strong>save in-game</strong> (<code>.srm</code>, <code>.sav</code>) e/ou <strong>save state</strong> (<code>.state</code>).</li>
+            <li>Opcional: screenshot ou o <code>.state.png</code> do RetroArch.</li>
+        </ol>
+        <p class="field-hint">No RetroArch: saves ficam em <code>saves\</code> e states em <code>states\</code> (ex.: <code>C:\RetroArch-Win64\</code>).</p>
+    </section>
+
+    <section class="card help-step">
+        <h2>3. Inserir fita (reviver o momento)</h2>
+        <p>Na estante de fitas, clique <strong>▶ Inserir fita</strong>. Você vê capa, data, memória e preview — como colocar a fita no console.</p>
+        <p>Daí você pode:</p>
+        <ul>
+            <li><strong>Rodar fita no navegador</strong> — emulador no site (precisa da ROM no seu PC).</li>
+            <li><strong>Exportar pacote (.zip)</strong> — copiar saves pro RetroArch com instruções.</li>
+        </ul>
+    </section>
+
+    <section class="card help-step">
+        <h2>4. Jogar no navegador</h2>
+        <ol>
+            <li>Em <strong>Inserir fita</strong> → <strong>Rodar fita no navegador</strong>.</li>
+            <li>Na primeira vez, escolha a <strong>ROM</strong> do jogo (fica só no seu navegador).</li>
+            <li>O save/state da fita carrega automaticamente, se existir.</li>
+            <li>Use <strong>Salvar progresso na fita</strong> para enviar o estado de volta ao site.</li>
+        </ol>
+        <p class="field-hint">Use apenas ROMs de jogos que você possui. O MemoryCard não hospeda jogos.</p>
+    </section>
+
+    <section class="card help-step help-latency" id="lag">
+        <h2>⏱️ Vai ter delay / lag?</h2>
+        <p><strong>Sim, um pouco — em geral mais que o RetroArch no PC.</strong> É normal em emulador no navegador:</p>
+        <ul>
+            <li><strong>Input lag:</strong> costuma ser ~1–4 frames a mais que no RetroArch (às vezes 50–150 ms em PC fraco ou celular).</li>
+            <li><strong>SNES / NES / GBA:</strong> costumam ficar bem jogáveis; muita gente nem percebe em RPG ou aventura.</li>
+            <li><strong>N64, PS1, NDS, PSP:</strong> mais pesados — mais risco de engasgos e lag.</li>
+            <li><strong>Primeira carga:</strong> o navegador baixa o “motor” do emulador (alguns MB) — só na primeira vez por plataforma.</li>
+            <li><strong>Durante o jogo:</strong> não usa internet; ROM e emulação rodam localmente no browser.</li>
+        </ul>
+        <p>Para <strong>speedrun ou precisão máxima</strong>, prefira RetroArch + exportar a fita em <strong>.zip</strong>. Para <strong>reviver uma save antiga com praticidade</strong>, o navegador funciona bem.</p>
+    </section>
+
+    <section class="card help-step">
+        <h2>5. Sync automático do PC (opcional)</h2>
+        <p>Se quiser enviar saves sem escolher arquivo manualmente, use o <strong>MemoryCard Sync</strong> em <a th:href="@{/sync-app}">Perfil → avançado</a>. Para a maioria, <strong>Gravar fita</strong> é mais simples e confiável.</p>
+    </section>
+
+    <section class="card help-faq">
+        <h2>Perguntas rápidas</h2>
+        <dl class="help-dl">
+            <dt>O .state do RetroArch funciona no navegador?</dt>
+            <dd>Às vezes. Cada core tem formato diferente. O <code>.srm</code> (save in-game) costuma ser mais compatível.</dd>
+            <dt>Preciso de internet para jogar?</dt>
+            <dd>Só para abrir a página e baixar o emulador na 1ª vez. Depois, offline na prática.</dd>
+            <dt>Onde fica a ROM?</dt>
+            <dd>No armazenamento do seu navegador (IndexedDB). Não sobe pro servidor.</dd>
+        </dl>
+    </section>
+
+    <p class="help-back">
+        <a th:href="@{/games}" class="btn btn-primary">Ir para Meus Jogos</a>
+    </p>
+</main>
+</body>
+</html>

@@ -7,8 +7,11 @@
 <main class="container">
     <header class="page-header">
         <div>
-            <h1>Olá, <span th:text="${user.name}">Usuário</span>!</h1>
-            <p class="subtitle">Acompanhe seu progresso nos jogos</p>
+            <h1>Olá, <span th:text="${user.displayNick}">Usuário</span>!</h1>
+            <p class="subtitle" th:if="${user.nick == null or #strings.isEmpty(user.nick)}">
+                <a th:href="@{/profile}">Defina seu nick no perfil</a> para aparecer na comunidade e para amigos.
+            </p>
+            <p class="subtitle" th:unless="${user.nick == null or #strings.isEmpty(user.nick)}">Acompanhe seu progresso nos jogos</p>
         </div>
         <a th:href="@{/games/new}" class="btn btn-primary btn-lg">+ Adicionar jogo</a>
     </header>

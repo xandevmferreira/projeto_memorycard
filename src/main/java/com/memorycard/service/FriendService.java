@@ -32,6 +32,17 @@ public class FriendService {
     public void inviteByEmail(Long currentUserId, String email) {
         User target = userRepository.findByEmail(email.trim())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com este e-mail"));
+        sendInvite(currentUserId, target);
+    }
+
+    @Transactional
+    public void inviteByNick(Long currentUserId, String nick) {
+        User target = userRepository.findByNickIgnoreCase(nick.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com este nick"));
+        sendInvite(currentUserId, target);
+    }
+
+    private void sendInvite(Long currentUserId, User target) {
         if (target.getId().equals(currentUserId)) {
             throw new IllegalArgumentException("Você não pode adicionar a si mesmo");
         }
@@ -124,7 +135,7 @@ public class FriendService {
                 ? friendship.getAddresseeId()
                 : friendship.getRequesterId();
         User other = userRepository.findById(otherId).orElse(null);
-        String name = other != null ? other.getName() : "Jogador";
+        String name = other != null ? other.getDisplayNick() : "Jogador";
         return new FriendView(
                 friendship.getId(),
                 otherId,

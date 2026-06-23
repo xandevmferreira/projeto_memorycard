@@ -50,12 +50,29 @@
 
             </div>
 
-            <div class="form-group">
-
-                <label for="platform">Plataforma</label>
-
-                <input type="text" id="platform" th:field="*{platform}" placeholder="PC, PS5, Switch...">
-
+            <div class="form-group platform-picker-group">
+                <label for="platform-preset">Plataforma</label>
+                <select id="platform-preset" aria-describedby="platform-hint">
+                    <option value="">Escolher na lista...</option>
+                    <optgroup label="▶ Console no navegador (fitas + player web)">
+                        <option th:each="p : ${platformSuggestions}"
+                                th:if="${p.webPlayer()}"
+                                th:value="${p.value()}"
+                                th:text="${p.label() + ' — Web'}">SNES</option>
+                    </optgroup>
+                    <optgroup label="Moderno / sem player web">
+                        <option th:each="p : ${platformSuggestions}"
+                                th:if="${!p.webPlayer()}"
+                                th:value="${p.value()}"
+                                th:text="${p.label()}">PC</option>
+                    </optgroup>
+                    <option value="__custom__">Outra (digitar abaixo)</option>
+                </select>
+                <input type="text" id="platform" th:field="*{platform}" placeholder="Ou digite: PC, PS5, Switch...">
+                <p id="platform-hint" class="field-hint">
+                    Plataformas com player web permitem <strong>Inserir fita</strong> e jogar no navegador.
+                    <a th:href="@{/ajuda/fitas}">Ver tutorial</a>
+                </p>
             </div>
 
         </div>
@@ -171,6 +188,10 @@
             <p id="retro-selected" class="field-hint" th:if="${gameForm.retroAchievementsGameId}">
                 RA Game ID: <span th:text="${gameForm.retroAchievementsGameId}"></span>
             </p>
+            <p class="field-hint">
+                Marque retro para RetroAchievements. Fitas digitais funcionam com ou sem RA.
+                <a th:href="@{/ajuda/fitas}">Tutorial de fitas</a>
+            </p>
         </section>
 
         <div class="form-group">
@@ -211,6 +232,7 @@
 <script th:src="@{/js/game-search.js}"></script>
 <script th:src="@{/js/retro-search.js}"></script>
 <script th:src="@{/js/game-form.js}"></script>
+<script th:src="@{/js/platform-picker.js}"></script>
 
 </body>
 

@@ -13,7 +13,7 @@
 
     <groupId>com.memorycard</groupId>
     <artifactId>memorycard</artifactId>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
     <name>memorycard</name>
     <description>Plataforma de catálogo pessoal de jogos</description>
 

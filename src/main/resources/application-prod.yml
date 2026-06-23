@@ -1,0 +1,28 @@
+spring:
+  thymeleaf:
+    cache: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/memorycard}
+    username: ${SPRING_DATASOURCE_USERNAME:memorycard}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  servlet:
+    multipart:
+      max-file-size: 64MB
+      max-request-size: 72MB
+
+server:
+  forward-headers-strategy: framework
+  shutdown: graceful
+
+app:
+  security:
+    cookie-secure: true
+    require-strong-secrets: true
+  storage:
+    local:
+      base-path: ${STORAGE_PATH:/data/uploads}
+
+logging:
+  level:
+    com.memorycard: INFO
+    org.springframework: WARN

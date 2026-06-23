@@ -14,6 +14,9 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column(length = 30, unique = true)
+    private String nick;
+
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -36,6 +39,21 @@ public class User {
     @Column(name = "retro_achievements_api_key")
     private String retroAchievementsApiKey;
 
+    @Column(name = "share_notes_with_friends", nullable = false)
+    private boolean shareNotesWithFriends = true;
+
+    @Column(name = "share_journal_with_friends", nullable = false)
+    private boolean shareJournalWithFriends = true;
+
+    @Column(name = "share_screenshots_with_friends", nullable = false)
+    private boolean shareScreenshotsWithFriends = true;
+
+    @Column(name = "sync_token_hash", length = 64)
+    private String syncTokenHash;
+
+    @Column(name = "sync_token_created_at")
+    private Instant syncTokenCreatedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();
@@ -55,6 +73,18 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getNick() {
+        return nick;
+    }
+
+    public void setNick(String nick) {
+        this.nick = nick;
+    }
+
+    public String getDisplayNick() {
+        return nick != null && !nick.isBlank() ? nick.trim() : "Jogador";
     }
 
     public String getEmail() {
@@ -95,4 +125,14 @@ public class User {
     public void setRetroAchievementsUsername(String retroAchievementsUsername) { this.retroAchievementsUsername = retroAchievementsUsername; }
     public String getRetroAchievementsApiKey() { return retroAchievementsApiKey; }
     public void setRetroAchievementsApiKey(String retroAchievementsApiKey) { this.retroAchievementsApiKey = retroAchievementsApiKey; }
+    public boolean isShareNotesWithFriends() { return shareNotesWithFriends; }
+    public void setShareNotesWithFriends(boolean shareNotesWithFriends) { this.shareNotesWithFriends = shareNotesWithFriends; }
+    public boolean isShareJournalWithFriends() { return shareJournalWithFriends; }
+    public void setShareJournalWithFriends(boolean shareJournalWithFriends) { this.shareJournalWithFriends = shareJournalWithFriends; }
+    public boolean isShareScreenshotsWithFriends() { return shareScreenshotsWithFriends; }
+    public void setShareScreenshotsWithFriends(boolean shareScreenshotsWithFriends) { this.shareScreenshotsWithFriends = shareScreenshotsWithFriends; }
+    public String getSyncTokenHash() { return syncTokenHash; }
+    public void setSyncTokenHash(String syncTokenHash) { this.syncTokenHash = syncTokenHash; }
+    public Instant getSyncTokenCreatedAt() { return syncTokenCreatedAt; }
+    public void setSyncTokenCreatedAt(Instant syncTokenCreatedAt) { this.syncTokenCreatedAt = syncTokenCreatedAt; }
 }

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head(${game.title()})}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav('friends')}"></nav>
+
+<main class="container">
+    <header class="page-header">
+        <div>
+            <a th:href="@{/users/{id}(id=${game.ownerId()})}" class="back-link">← Biblioteca de <span th:text="${game.ownerName()}">Amigo</span></a>
+            <h1 th:text="${game.title()}">Título</h1>
+            <p class="field-hint">Biblioteca de <strong th:text="${game.ownerName()}">Amigo</strong> — somente leitura</p>
+            <div class="badge-row">
+                <span class="badge" th:text="${game.status().getLabel()}">Jogando</span>
+                <span th:if="${game.completionType()}" class="badge badge-muted" th:text="${game.completionType().getLabel()}">Tipo</span>
+                <span th:if="${game.retro()}" class="badge badge-retro">Retro</span>
+            </div>
+            <div th:if="${game.tags()}" class="tag-list">
+                <span class="tag-chip" th:text="${game.tags()}">tags</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="detail-grid">
+        <section class="card">
+            <img th:if="${game.coverUrl()}" th:src="${game.coverUrl()}" alt="Capa" class="detail-cover">
+            <div th:unless="${game.coverUrl()}" class="detail-cover placeholder">🎮</div>
+
+            <dl class="detail-info">
+                <div th:if="${game.platform()}">
+                    <dt>Plataforma</dt>
+                    <dd th:text="${game.platform()}">PC</dd>
+                </div>
+                <div th:if="${game.emulator()}">
+                    <dt>Emulador</dt>
+                    <dd th:text="${game.emulator()}">RetroArch</dd>
+                </div>
+                <div>
+                    <dt>Horas jogadas</dt>
+                    <dd th:text="${game.hoursPlayed()} + 'h'">0h</dd>
+                </div>
+                <div th:if="${game.personalRating()}">
+                    <dt>Nota pessoal</dt>
+                    <dd th:text="${game.personalRating()} + '/10'">0/10</dd>
+                </div>
+                <div th:if="${game.externalRating()}">
+                    <dt>Metacritic</dt>
+                    <dd th:text="${game.externalRating()} + '/100'">0/100</dd>
+                </div>
+                <div th:if="${game.startedAt()}">
+                    <dt>Início</dt>
+                    <dd th:text="${#temporals.format(game.startedAt(), 'dd/MM/yyyy')}">01/01/2024</dd>
+                </div>
+                <div th:if="${game.completedAt()}">
+                    <dt>Zerado em</dt>
+                    <dd th:text="${#temporals.format(game.completedAt(), 'dd/MM/yyyy')}">01/01/2024</dd>
+                </div>
+                <div th:if="${game.notesVisible()}">
+                    <dt>Observações</dt>
+                    <dd class="notes-block" th:text="${game.notes()}">Notas</dd>
+                </div>
+            </dl>
+
+            <section th:if="${game.retro()}" class="retro-panel">
+                <h3>🏆 RetroAchievements</h3>
+                <div th:if="${game.retroProgress()}">
+                    <div class="progress-bar">
+                        <div class="progress-fill" th:style="'width:' + ${game.retroProgress().progressPercent()} + '%'"></div>
+                    </div>
+                    <p class="meta">
+                        <span th:text="${game.retroProgress().progressPercent()} + '%'">0%</span>
+                        ·
+                        <span th:text="${game.retroProgress().achievementsEarned()} + '/' + ${game.retroProgress().achievementsTotal()} + ' conquistas'">0/0</span>
+                    </p>
+                </div>
+            </section>
+        </section>
+
+        <div class="detail-side">
+            <section class="card" th:if="${game.journalVisible()}">
+                <h2>📓 Diário do jogador</h2>
+                <div th:if="${#lists.isEmpty(game.journalEntries())}" class="empty-state-small">
+                    <p>Nenhuma entrada no diário ainda.</p>
+                </div>
+                <div class="journal-list" th:unless="${#lists.isEmpty(game.journalEntries())}">
+                    <article th:each="entry : ${game.journalEntries()}" class="journal-entry"
+                             th:classappend="${entry.spoiler()} ? 'spoiler-entry' : ''">
+                        <time th:text="${#temporals.format(entry.createdAt(), 'dd/MM/yyyy HH:mm')}">Data</time>
+                        <div th:if="${entry.spoiler()}" class="spoiler-hidden">
+                            <p class="spoiler-warning">⚠️ Spoiler oculto</p>
+                            <button type="button" class="btn btn-ghost btn-sm spoiler-reveal">Mostrar spoiler</button>
+                            <p class="spoiler-content hidden" th:text="${entry.content()}">Conteúdo</p>
+                        </div>
+                        <p th:unless="${entry.spoiler()}" th:text="${entry.content()}">Conteúdo</p>
+                    </article>
+                </div>
+            </section>
+            <section class="card" th:unless="${game.journalVisible()}">
+                <h2>📓 Diário do jogador</h2>
+                <p class="field-hint">Este jogador optou por não compartilhar o diário com amigos.</p>
+            </section>
+
+            <section class="card" th:if="${game.screenshotsVisible()}">
+                <h2>Screenshots</h2>
+                <div th:if="${#lists.isEmpty(game.screenshots())}" class="empty-state-small">
+                    <p>Nenhum screenshot compartilhado.</p>
+                </div>
+                <div class="screenshots-grid" th:unless="${#lists.isEmpty(game.screenshots())}">
+                    <div th:each="screenshot : ${game.screenshots()}" class="screenshot-item">
+                        <img th:src="${screenshot.url()}" alt="Screenshot">
+                    </div>
+                </div>
+            </section>
+            <section class="card" th:unless="${game.screenshotsVisible()}">
+                <h2>Screenshots</h2>
+                <p class="field-hint">Este jogador optou por não compartilhar screenshots com amigos.</p>
+            </section>
+        </div>
+    </div>
+</main>
+<script th:src="@{/js/spoiler-reveal.js}"></script>
+</body>
+</html>

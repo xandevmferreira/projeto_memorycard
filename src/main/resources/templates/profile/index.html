@@ -6,6 +6,7 @@
 
 <main class="container">
     <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
     <header class="page-header">
         <h1>Meu perfil</h1>
@@ -28,14 +29,33 @@
         </div>
     </section>
 
+    <section class="card sync-app-promo">
+        <details>
+            <summary><h2 style="display:inline">⚙️ MemoryCard Sync (avançado)</h2></summary>
+            <p class="field-hint">
+                Programa opcional para o PC enviar saves do RetroArch em segundo plano.
+                Para a maioria dos casos, use <strong>Gravar fita</strong> na página do jogo — é mais simples.
+            </p>
+            <a th:href="@{/sync-app}" class="btn btn-ghost btn-sm">Baixar MemoryCard Sync</a>
+        </details>
+    </section>
+
     <form th:action="@{/profile}" method="post" class="card form-card">
         <div class="form-group">
-            <label>Nome</label>
+            <label>Nome completo</label>
             <input type="text" th:value="${user.name}" disabled>
+            <p class="field-hint">Uso interno da conta. Na comunidade e entre amigos aparece apenas o nick.</p>
         </div>
         <div class="form-group">
             <label>E-mail</label>
             <input type="email" th:value="${user.email}" disabled>
+        </div>
+        <div class="form-group">
+            <label for="nick">Nick</label>
+            <input type="text" id="nick" name="nick" th:value="${user.nick}"
+                   placeholder="Seu nick na comunidade" maxlength="30"
+                   pattern="[a-zA-Z0-9_]{3,30}" title="3 a 30 caracteres: letras, números e underscore">
+            <p class="field-hint">Usado na comunidade e para te encontrarem como amigo. Letras, números e _ (3–30 caracteres).</p>
         </div>
 
         <section class="form-section">
@@ -43,10 +63,38 @@
             <div class="form-group checkbox-group">
                 <label>
                     <input type="checkbox" name="communityVisible" value="true" th:checked="${user.communityVisible}">
-                    Mostrar meus zerados no ranking da comunidade
+                    <span class="checkbox-text">Mostrar meus zerados no ranking da comunidade</span>
                 </label>
-                <p class="field-hint">Seu nome e jogos zerados aparecem na dashboard para outros usuários.</p>
+                <p class="field-hint">Seu nick e jogos zerados aparecem na dashboard para outros usuários.</p>
             </div>
+        </section>
+
+        <section class="form-section">
+            <h2>🤝 Compartilhar com amigos</h2>
+            <p class="field-hint">Amigos aceitos podem abrir seus jogos e ver o que você autorizar abaixo.</p>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" name="shareNotesWithFriends" value="true" th:checked="${user.shareNotesWithFriends}">
+                    <span class="checkbox-text">Observações gerais do jogo</span>
+                </label>
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" name="shareJournalWithFriends" value="true" th:checked="${user.shareJournalWithFriends}">
+                    <span class="checkbox-text">Diário do jogador (entradas e spoilers)</span>
+                </label>
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" name="shareScreenshotsWithFriends" value="true" th:checked="${user.shareScreenshotsWithFriends}">
+                    <span class="checkbox-text">Screenshots</span>
+                </label>
+            </div>
+        </section>
+
+        <section class="form-section">
+            <h2>⏱️ Contador de horas (opcional)</h2>
+            <p class="field-hint">Use o botão na página do jogo para contar o tempo automaticamente, ou rode <code>scripts\play-tracker.ps1</code> no PC para detectar quando um processo (ex.: Minecraft) está aberto.</p>
         </section>
 
         <section class="form-section">

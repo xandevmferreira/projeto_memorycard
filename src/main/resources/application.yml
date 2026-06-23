@@ -18,8 +18,8 @@ spring:
     locations: classpath:db/migration
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 20MB
+      max-file-size: 32MB
+      max-request-size: 40MB
   thymeleaf:
     cache: false
 
@@ -30,6 +30,9 @@ app:
   jwt:
     secret: ${JWT_SECRET:change-this-secret-key-to-a-long-random-string-at-least-256-bits}
     expiration-ms: 86400000
+  security:
+    cookie-secure: false
+    require-strong-secrets: false
   storage:
     type: local
     local:
@@ -54,6 +57,9 @@ app:
         url: https://www.polygon.com/rss/index.xml
       - name: Kotaku
         url: https://kotaku.com/rss
+
+memorycard:
+  sync-agent-dev-jar: sync-agent/target/memorycard-sync-agent-0.0.11.jar
 
 logging:
   level:

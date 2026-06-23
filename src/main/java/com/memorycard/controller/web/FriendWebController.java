@@ -27,9 +27,18 @@ public class FriendWebController {
     }
 
     @PostMapping("/invite")
-    public String invite(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+    public String invite(@RequestParam(value = "email", required = false) String email,
+                         @RequestParam(value = "nick", required = false) String nick,
+                         RedirectAttributes redirectAttributes) {
         try {
-            friendService.inviteByEmail(SecurityUtils.getCurrentUserId(), email);
+            Long userId = SecurityUtils.getCurrentUserId();
+            if (nick != null && !nick.isBlank()) {
+                friendService.inviteByNick(userId, nick);
+            } else if (email != null && !email.isBlank()) {
+                friendService.inviteByEmail(userId, email);
+            } else {
+                throw new IllegalArgumentException("Informe o e-mail ou o nick do amigo");
+            }
             redirectAttributes.addFlashAttribute("success", "Convite enviado!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

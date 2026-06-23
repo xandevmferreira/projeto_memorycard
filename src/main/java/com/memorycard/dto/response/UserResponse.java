@@ -6,6 +6,8 @@ import java.time.Instant;
 public record UserResponse(
         Long id,
         String name,
+        String nick,
+        String displayNick,
         String email,
         SubscriptionStatus subscriptionStatus,
         Instant createdAt

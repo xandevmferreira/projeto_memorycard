@@ -165,7 +165,7 @@ Ao cadastrar um jogo, o sistema tenta preencher automaticamente capa, plataforma
 
 ```bash
 mvn clean package
-java -jar target/memorycard-0.0.1-SNAPSHOT.jar
+java -jar target/memorycard-0.1.0.jar
 ```
 
 ## Testes

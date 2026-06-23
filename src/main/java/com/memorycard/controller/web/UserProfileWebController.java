@@ -2,6 +2,7 @@ package com.memorycard.controller.web;
 
 import com.memorycard.exception.AccessDeniedException;
 import com.memorycard.security.SecurityUtils;
+import com.memorycard.service.FriendGameViewService;
 import com.memorycard.service.UserProfileService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,9 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class UserProfileWebController {
 
     private final UserProfileService userProfileService;
+    private final FriendGameViewService friendGameViewService;
 
-    public UserProfileWebController(UserProfileService userProfileService) {
+    public UserProfileWebController(UserProfileService userProfileService,
+                                    FriendGameViewService friendGameViewService) {
         this.userProfileService = userProfileService;
+        this.friendGameViewService = friendGameViewService;
     }
 
     @GetMapping("/{id}")
@@ -25,6 +29,21 @@ public class UserProfileWebController {
             var profile = userProfileService.getProfile(SecurityUtils.getCurrentUserId(), id);
             model.addAttribute("profile", profile);
             return "users/profile";
+        } catch (AccessDeniedException e) {
+            model.addAttribute("error", e.getMessage());
+            return "users/denied";
+        }
+    }
+
+    @GetMapping("/{userId}/games/{gameId}")
+    public String friendGame(@PathVariable("userId") Long userId,
+                             @PathVariable("gameId") Long gameId,
+                             Model model) {
+        try {
+            var game = friendGameViewService.getGameForViewer(
+                    SecurityUtils.getCurrentUserId(), userId, gameId);
+            model.addAttribute("game", game);
+            return "users/game-detail";
         } catch (AccessDeniedException e) {
             model.addAttribute("error", e.getMessage());
             return "users/denied";

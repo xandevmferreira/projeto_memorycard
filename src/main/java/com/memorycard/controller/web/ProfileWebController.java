@@ -32,18 +32,30 @@ public class ProfileWebController {
     }
 
     @PostMapping("/profile")
-    public String updateProfile(@RequestParam(value = "communityVisible", defaultValue = "false") boolean communityVisible,
+    public String updateProfile(@RequestParam(value = "nick", required = false) String nick,
+                                @RequestParam(value = "communityVisible", defaultValue = "false") boolean communityVisible,
+                                @RequestParam(value = "shareNotesWithFriends", defaultValue = "false") boolean shareNotesWithFriends,
+                                @RequestParam(value = "shareJournalWithFriends", defaultValue = "false") boolean shareJournalWithFriends,
+                                @RequestParam(value = "shareScreenshotsWithFriends", defaultValue = "false") boolean shareScreenshotsWithFriends,
                                 @RequestParam(value = "retroAchievementsUsername", required = false) String raUsername,
                                 @RequestParam(value = "retroAchievementsApiKey", required = false) String raApiKey,
                                 RedirectAttributes redirectAttributes) {
-        communityService.updateProfile(
-                SecurityUtils.getCurrentUserId(),
-                communityVisible,
-                raUsername,
-                raApiKey
-        );
-        badgeService.evaluateAndAward(SecurityUtils.getCurrentUserId());
-        redirectAttributes.addFlashAttribute("success", "Perfil atualizado!");
+        try {
+            communityService.updateProfile(
+                    SecurityUtils.getCurrentUserId(),
+                    nick,
+                    communityVisible,
+                    shareNotesWithFriends,
+                    shareJournalWithFriends,
+                    shareScreenshotsWithFriends,
+                    raUsername,
+                    raApiKey
+            );
+            badgeService.evaluateAndAward(SecurityUtils.getCurrentUserId());
+            redirectAttributes.addFlashAttribute("success", "Perfil atualizado!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/profile";
     }
 }

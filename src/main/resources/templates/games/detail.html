@@ -6,6 +6,7 @@
 
 <main class="container">
     <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
     <header class="page-header">
         <div>
@@ -28,10 +29,68 @@
             <a th:href="@{/games/{id}/edit(id=${game.id})}" class="btn btn-ghost">Editar</a>
             <form th:action="@{/games/{id}/delete(id=${game.id})}" method="post"
                   onsubmit="return confirm('Tem certeza que deseja excluir este jogo?');">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null}">
                 <button type="submit" class="btn btn-danger">Excluir</button>
             </form>
         </div>
     </header>
+
+    <section class="card tape-console-banner" id="console">
+        <div class="tape-console-banner-inner">
+            <div>
+                <h2 class="tape-console-title">🎮 Console virtual</h2>
+                <p th:if="${webPlayerSupported}" class="field-hint">
+                    Teste o emulador aqui: insira uma fita, escolha a ROM no navegador e jogue.
+                    Plataforma: <strong th:text="${game.platform}">SNES</strong>
+                </p>
+                <p th:unless="${webPlayerSupported}" class="field-hint">
+                    Emulador no site indisponível — plataforma atual:
+                    <strong th:text="${game.platform != null && !game.platform.isBlank() ? game.platform : 'não definida'}">?</strong>.
+                    Edite o jogo e escolha <strong>Super Nintendo (SNES)</strong> na lista de plataformas.
+                    <a th:href="@{/games/{id}/edit(id=${game.id})}">Editar jogo</a>
+                </p>
+            </div>
+            <div class="tape-console-actions">
+                <a th:if="${latestCartridge != null and webPlayerSupported}"
+                   th:href="@{/games/{g}/cartridges/{c}/play(g=${game.id}, c=${latestCartridge.id()})}"
+                   class="btn btn-primary btn-lg">▶ Rodar no navegador</a>
+                <a th:if="${latestCartridge != null}"
+                   th:href="@{/games/{g}/cartridges/{c}/insert(g=${game.id}, c=${latestCartridge.id()})}"
+                   th:class="${(webPlayerSupported and latestCartridge != null) ? 'btn btn-ghost btn-lg' : 'btn btn-primary btn-lg'}">📼 Inserir fita</a>
+                <a th:href="@{|/games/${game.id}#fitas|}" class="btn btn-ghost">Gravar fita</a>
+            </div>
+        </div>
+        <p th:if="${#lists.isEmpty(cartridges)}" class="field-hint tape-console-empty">
+            Ainda não há fitas gravadas. Desça até <a th:href="@{|/games/${game.id}#fitas|}">Fitas digitais</a>,
+            envie seu <code>.srm</code> ou <code>.state</code> do RetroArch e volte aqui.
+        </p>
+        <p th:if="${!#lists.isEmpty(cartridges) and !webPlayerSupported}" class="field-hint tape-console-empty">
+            Você tem fitas salvas, mas precisa definir a plataforma <strong>SNES</strong> para abrir o emulador no site.
+        </p>
+    </section>
+
+    <section class="card play-timer-banner">
+        <div class="play-timer-banner-inner">
+            <div>
+                <h2 class="play-timer-title">⏱️ Contador de horas</h2>
+                <p class="field-hint">Inicie antes de jogar; ao parar, o tempo entra nas horas do jogo.</p>
+            </div>
+            <div class="play-timer-actions">
+                <div th:if="${activePlaySession}" id="play-timer" class="play-timer" th:attr="data-started-at=${activePlaySession.startedAt()}">
+                    <span class="play-timer-label">Contando:</span>
+                    <span class="play-timer-value">00:00:00</span>
+                    <form th:action="@{/games/{id}/play/stop(id=${game.id})}" method="post">
+                        <button type="submit" class="btn btn-danger">Parar contagem</button>
+                    </form>
+                </div>
+                <div th:unless="${activePlaySession}">
+                    <form th:action="@{/games/{id}/play/start(id=${game.id})}" method="post">
+                        <button type="submit" class="btn btn-primary">▶ Iniciar contagem</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <div class="detail-grid">
         <section class="card">
@@ -138,8 +197,141 @@
             </section>
         </div>
     </div>
+
+    <section id="fitas" class="card cartridge-section">
+        <div class="card-header tape-section-header">
+            <div>
+                <h2>📼 Fitas digitais</h2>
+                <p class="field-hint tape-section-lead">
+                    Grave um momento do jogo como uma fita — save, estado do emulador e memória.
+                    Depois, <strong>insira a fita</strong> para reviver a sessão ou jogar no navegador.
+                    <a th:href="@{/ajuda/fitas}">Tutorial completo</a>
+                </p>
+            </div>
+        </div>
+
+        <details class="tape-record-panel" open>
+            <summary class="tape-record-summary">📼 Gravar fita</summary>
+            <form th:action="@{/games/{id}/cartridges/record(id=${game.id})}" method="post"
+                  enctype="multipart/form-data" class="tape-record-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null}">
+                <div class="form-group">
+                    <label for="tape-label">Nome da fita</label>
+                    <input type="text" id="tape-label" name="label" required maxlength="120"
+                           th:placeholder="'Ex: ' + ${game.title} + ' — antes do chefão'">
+                </div>
+                <div class="form-group">
+                    <label for="tape-memories">Onde parei / memória desta sessão</label>
+                    <textarea id="tape-memories" name="memories" rows="3"
+                              placeholder="O que estava acontecendo, sentimento da época, recorde pessoal..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tape-date">Data da sessão</label>
+                        <input type="date" id="tape-date" name="sessionDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="tape-emulator">Emulador (opcional)</label>
+                        <input type="text" id="tape-emulator" name="emulatorHint"
+                               th:placeholder="${game.emulator != null ? game.emulator : 'RetroArch, Snes9x...'}">
+                    </div>
+                </div>
+                <div class="tape-upload-grid">
+                    <div class="form-group">
+                        <label for="tape-save">Save in-game (.srm, .sav…)</label>
+                        <input type="file" id="tape-save" name="saveFile" accept=".srm,.sav,.dsv,.mcr,.dat,.json">
+                    </div>
+                    <div class="form-group">
+                        <label for="tape-state">Estado do emulador (.state)</label>
+                        <input type="file" id="tape-state" name="stateFile" accept=".state,.st0,.st1,.savestate">
+                    </div>
+                    <div class="form-group">
+                        <label for="tape-shot">Screenshot (opcional)</label>
+                        <input type="file" id="tape-shot" name="screenshot" accept="image/*">
+                    </div>
+                </div>
+                <p class="field-hint">Envie pelo menos um arquivo de save ou estado. Pode incluir o .state.png do RetroArch como screenshot.</p>
+                <button type="submit" class="btn btn-primary">Gravar fita</button>
+            </form>
+        </details>
+
+        <details class="cartridge-sync-help">
+            <summary>⚙️ Sync automático do PC (avançado)</summary>
+            <p class="field-hint">
+                Opcional: o <strong>MemoryCard Sync</strong> envia saves do RetroArch em segundo plano.
+                Para a maioria dos casos, <strong>Gravar fita</strong> acima é mais simples.
+            </p>
+            <p class="field-hint">
+                <a th:href="@{/sync-app}" class="btn btn-ghost btn-sm">Baixar MemoryCard Sync</a>
+            </p>
+        </details>
+
+        <div th:if="${#lists.isEmpty(cartridges)}" class="empty-state-small">
+            <p>Nenhuma fita gravada. Use <strong>Gravar fita</strong> após jogar.</p>
+        </div>
+
+        <div class="tape-shelf" th:unless="${#lists.isEmpty(cartridges)}">
+            <article th:each="cartridge : ${cartridges}" class="tape-card">
+                <div class="tape-card-visual">
+                    <img th:if="${cartridge.snapshotUrl() != null}" th:src="${cartridge.snapshotUrl()}" alt="">
+                    <img th:if="${cartridge.snapshotUrl() == null and game.coverUrl != null}" th:src="${game.coverUrl}" alt="">
+                    <div th:if="${cartridge.snapshotUrl() == null and game.coverUrl == null}" class="tape-card-placeholder">📼</div>
+                </div>
+                <div class="tape-card-body">
+                    <h3 th:text="${cartridge.label()}">Fita</h3>
+                    <p class="meta" th:if="${cartridge.sessionDate()}">
+                        <span th:text="${#temporals.format(cartridge.sessionDate(), 'dd/MM/yyyy')}">data</span>
+                    </p>
+                    <p th:if="${cartridge.memories()}" class="tape-card-memories" th:text="${#strings.abbreviate(cartridge.memories(), 120)}">memória</p>
+                    <div class="tape-card-badges">
+                        <span th:if="${cartridge.hasSave()}" class="badge badge-muted">Save</span>
+                        <span th:if="${cartridge.hasState()}" class="badge badge-retro">State</span>
+                        <span th:if="${cartridge.canPlayInBrowser()}" class="badge badge-muted">Web</span>
+                    </div>
+                    <div class="tape-card-actions">
+                        <a th:href="@{/games/{g}/cartridges/{c}/insert(g=${game.id}, c=${cartridge.id()})}"
+                           class="btn btn-primary btn-sm">▶ Inserir fita</a>
+                        <a th:if="${cartridge.canPlayInBrowser()}"
+                           th:href="@{/games/{g}/cartridges/{c}/play(g=${game.id}, c=${cartridge.id()})}"
+                           class="btn btn-ghost btn-sm">Jogar</a>
+                        <a th:href="@{/games/{g}/cartridges/{c}/export(g=${game.id}, c=${cartridge.id()})}"
+                           class="btn btn-ghost btn-sm">.zip</a>
+                    </div>
+                </div>
+                <details class="tape-card-manage">
+                    <summary>Gerenciar arquivos</summary>
+                    <ul class="archive-file-list" th:if="${!#lists.isEmpty(cartridge.files())}">
+                        <li th:each="file : ${cartridge.files()}" class="archive-file-item">
+                            <span class="badge badge-muted" th:text="${file.fileType().label}">Save</span>
+                            <a th:href="@{/games/{gameId}/cartridges/{cartridgeId}/files/{fileId}/download(gameId=${game.id}, cartridgeId=${cartridge.id()}, fileId=${file.id()})}"
+                               th:text="${file.originalFilename()}">arquivo</a>
+                            <span class="meta" th:text="${#numbers.formatDecimal(file.fileSize() / 1024.0, 1, 1)} + ' KB'">0 KB</span>
+                            <form th:action="@{/games/{gameId}/cartridges/{cartridgeId}/files/{fileId}/delete(gameId=${game.id}, cartridgeId=${cartridge.id()}, fileId=${file.id()})}"
+                                  method="post">
+                                <button type="submit" class="btn btn-ghost btn-sm">×</button>
+                            </form>
+                        </li>
+                    </ul>
+                    <form th:action="@{/games/{gameId}/cartridges/{cartridgeId}/files(gameId=${game.id}, cartridgeId=${cartridge.id()})}"
+                          method="post" enctype="multipart/form-data" class="archive-upload-form">
+                        <select name="fileType" required>
+                            <option th:each="type : ${archiveFileTypes}" th:value="${type.name()}" th:text="${type.label}">Save</option>
+                        </select>
+                        <input type="file" name="file" required>
+                        <button type="submit" class="btn btn-ghost btn-sm">Anexar</button>
+                    </form>
+                    <form th:action="@{/games/{gameId}/cartridges/{cartridgeId}/delete(gameId=${game.id}, cartridgeId=${cartridge.id()})}"
+                          method="post" class="tape-delete-form"
+                          onsubmit="return confirm('Remover esta fita e todos os arquivos?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Remover fita</button>
+                    </form>
+                </details>
+            </article>
+        </div>
+    </section>
 </main>
 
 <div th:replace="~{fragments/fab :: fab}"></div>
+<script th:if="${activePlaySession}" th:src="@{/js/play-timer.js}"></script>
 </body>
 </html>

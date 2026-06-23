@@ -2,13 +2,14 @@ package com.memorycard.security;
 
 import com.memorycard.entity.User;
 import com.memorycard.repository.UserRepository;
+import com.memorycard.service.SyncTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
+import com.memorycard.security.CookieFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,10 +28,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final SyncTokenService syncTokenService;
+    private final CookieFactory cookieFactory;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider,
+                                   UserRepository userRepository,
+                                   SyncTokenService syncTokenService,
+                                   CookieFactory cookieFactory) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
+        this.syncTokenService = syncTokenService;
+        this.cookieFactory = cookieFactory;
     }
 
     @Override
@@ -38,30 +46,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = extractToken(request);
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            Long userId = jwtTokenProvider.getUserIdFromToken(token);
-            userRepository.findById(userId).ifPresent(user -> {
-                setAuthentication(request, user);
-                refreshJwtCookie(response, token);
-            });
+        if (token != null) {
+            if (token.startsWith(SyncTokenService.TOKEN_PREFIX)) {
+                syncTokenService.findUserByToken(token).ifPresent(user ->
+                        setAuthentication(request, user, true));
+            } else if (jwtTokenProvider.validateToken(token)) {
+                Long userId = jwtTokenProvider.getUserIdFromToken(token);
+                userRepository.findById(userId).ifPresent(user -> {
+                    setAuthentication(request, user, false);
+                    refreshJwtCookie(response, token);
+                });
+            }
         }
 
         filterChain.doFilter(request, response);
     }
 
     private void refreshJwtCookie(HttpServletResponse response, String token) {
-        ResponseCookie cookie = ResponseCookie.from(JWT_COOKIE_NAME, token)
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .sameSite("Lax")
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                cookieFactory.jwtCookie(token, Duration.ofDays(7)).toString());
     }
 
-    private void setAuthentication(HttpServletRequest request, User user) {
-        var authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    private void setAuthentication(HttpServletRequest request, User user, boolean syncToken) {
+        var role = syncToken ? "ROLE_SYNC" : "ROLE_USER";
+        var authorities = List.of(new SimpleGrantedAuthority(role));
         var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);

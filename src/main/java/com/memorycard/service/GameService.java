@@ -34,6 +34,7 @@ public class GameService {
     private final GameJournalService gameJournalService;
     private final UserRepository userRepository;
     private final BadgeService badgeService;
+    private final GameCartridgeService gameCartridgeService;
 
     public GameService(GameRepository gameRepository,
                        GameScreenshotRepository screenshotRepository,
@@ -43,7 +44,8 @@ public class GameService {
                        RetroAchievementsService retroAchievementsService,
                        GameJournalService gameJournalService,
                        UserRepository userRepository,
-                       BadgeService badgeService) {
+                       BadgeService badgeService,
+                       GameCartridgeService gameCartridgeService) {
         this.gameRepository = gameRepository;
         this.screenshotRepository = screenshotRepository;
         this.storageService = storageService;
@@ -53,6 +55,7 @@ public class GameService {
         this.gameJournalService = gameJournalService;
         this.userRepository = userRepository;
         this.badgeService = badgeService;
+        this.gameCartridgeService = gameCartridgeService;
     }
 
     @Transactional(readOnly = true)
@@ -216,6 +219,7 @@ public class GameService {
         for (GameScreenshot screenshot : screenshots) {
             storageService.delete(screenshot.getFilePath());
         }
+        gameCartridgeService.deleteAllForGame(gameId);
         gameRepository.delete(game);
         badgeService.evaluateAndAward(userId);
     }

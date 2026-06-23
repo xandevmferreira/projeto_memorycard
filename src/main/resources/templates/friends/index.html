@@ -15,8 +15,13 @@
     <section class="card form-card">
         <h2>Adicionar amigo</h2>
         <form th:action="@{/friends/invite}" method="post" class="list-create-form">
-            <input type="email" name="email" required placeholder="E-mail do amigo no MemoryCard">
-            <button type="submit" class="btn btn-primary">Enviar convite</button>
+            <input type="text" name="nick" placeholder="Nick do amigo" maxlength="30"
+                   pattern="[a-zA-Z0-9_]{3,30}">
+            <button type="submit" class="btn btn-primary">Convidar por nick</button>
+        </form>
+        <form th:action="@{/friends/invite}" method="post" class="list-create-form" style="margin-top: 0.75rem;">
+            <input type="email" name="email" placeholder="E-mail do amigo no MemoryCard">
+            <button type="submit" class="btn btn-ghost">Convidar por e-mail</button>
         </form>
         <p class="field-hint">Seu amigo precisa ter conta no MemoryCard. Após aceitar, vocês poderão ver a biblioteca um do outro.</p>
     </section>
@@ -51,7 +56,7 @@
     <section class="card">
         <h2>Meus amigos</h2>
         <div th:if="${#lists.isEmpty(friends)}" class="empty-state-small">
-            <p>Nenhum amigo ainda. Convide alguém pelo e-mail!</p>
+            <p>Nenhum amigo ainda. Convide alguém pelo nick ou e-mail!</p>
         </div>
         <ul class="friend-list" th:unless="${#lists.isEmpty(friends)}">
             <li th:each="friend : ${friends}" class="friend-item">

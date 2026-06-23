@@ -64,7 +64,7 @@ public class UserProfileService {
 
         return new UserPublicProfile(
                 user.getId(),
-                user.getName(),
+                user.getDisplayNick(),
                 user.getCreatedAt(),
                 games.size(),
                 completed,

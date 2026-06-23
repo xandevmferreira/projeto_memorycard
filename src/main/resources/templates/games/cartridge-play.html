@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('Rodar fita')}"></head>
+<body class="tape-play-body">
+<nav th:replace="~{fragments/nav :: nav('games')}"></nav>
+
+<main class="container tape-play-page"
+      id="tape-player-root"
+      th:attr="data-game-id=${manifest.gameId()},
+               data-cartridge-id=${manifest.cartridgeId()},
+               data-core=${manifest.emulatorCore()},
+               data-state-url=${manifest.stateDownloadUrl()},
+               data-save-url=${manifest.saveDownloadUrl()},
+               data-has-state=${manifest.hasState()},
+               data-has-save=${manifest.hasSave()},
+               data-rom-hint=${manifest.romExtensionsHint()},
+               data-game-title=${manifest.gameTitle()}">
+
+    <header class="page-header tape-play-header">
+        <div>
+            <a th:href="@{/games/{g}/cartridges/{c}/insert(g=${manifest.gameId()}, c=${manifest.cartridgeId()})}"
+               class="back-link">← Voltar à fita</a>
+            <h1 th:text="${manifest.gameTitle()}">Jogo</h1>
+            <p class="field-hint">Console virtual — <span th:text="${manifest.platform()}">SNES</span></p>
+        </div>
+        <div class="tape-play-toolbar">
+            <label class="btn btn-ghost btn-sm tape-rom-btn">
+                📁 Escolher ROM
+                <input type="file" id="tape-rom-input" accept="*/*" hidden>
+            </label>
+            <button type="button" id="tape-save-btn" class="btn btn-primary btn-sm" disabled>
+                💾 Salvar progresso na fita
+            </button>
+        </div>
+    </header>
+
+    <div id="tape-rom-status" class="alert alert-info tape-rom-status">
+        Escolha a ROM deste jogo (<span th:text="${manifest.romExtensionsHint()}">.sfc</span>).
+        Ela fica só no seu navegador — não enviamos para o servidor.
+    </div>
+    <div id="tape-player-message" class="alert alert-error hidden"></div>
+
+    <section class="card tape-player-card">
+        <div id="tape-emulator" class="tape-emulator-host">
+            <div id="tape-emulator-placeholder" class="tape-emulator-placeholder">
+                <p>Escolha a ROM acima para abrir o emulador.<br>
+                O save/state desta fita será carregado automaticamente.</p>
+            </div>
+        </div>
+    </section>
+
+    <p class="field-hint tape-play-legal">
+        Use apenas ROMs de jogos que você possui. O MemoryCard guarda saves e estados, não distribui jogos.
+        <a th:href="@{/ajuda/fitas#lag}">Delay no navegador?</a>
+    </p>
+</main>
+
+<script th:src="@{/js/tape-player.js}"></script>
+</body>
+</html>

@@ -53,7 +53,9 @@
             <p>Nenhum jogo cadastrado ainda.</p>
         </div>
         <div class="games-grid" th:unless="${#lists.isEmpty(profile.games())}">
-            <article th:each="game : ${profile.games()}" class="game-card">
+            <a th:each="game : ${profile.games()}"
+               th:href="@{/users/{userId}/games/{gameId}(userId=${profile.id()}, gameId=${game.id()})}"
+               class="game-card game-card-link">
                 <img th:if="${game.coverUrl()}" th:src="${game.coverUrl()}" alt="" class="game-cover">
                 <div th:unless="${game.coverUrl()}" class="game-cover placeholder">🎮</div>
                 <div class="game-card-body">
@@ -62,8 +64,9 @@
                     <p th:if="${game.platform()}" class="meta" th:text="${game.platform()}">PC</p>
                     <p th:if="${game.metacriticScore()}" class="meta">MC <span th:text="${game.metacriticScore()}">90</span>/100</p>
                     <p th:if="${game.personalRating()}" class="meta">Nota pessoal: <span th:text="${game.personalRating()}">8</span>/10</p>
+                    <p class="meta link-hint">Ver detalhes →</p>
                 </div>
-            </article>
+            </a>
         </div>
     </section>
 </main>

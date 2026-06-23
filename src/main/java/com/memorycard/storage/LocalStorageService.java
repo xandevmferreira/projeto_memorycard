@@ -2,10 +2,13 @@ package com.memorycard.storage;
 
 import com.memorycard.config.StorageProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -72,6 +75,24 @@ public class LocalStorageService implements StorageService {
             return null;
         }
         return storageProperties.getLocal().getBaseUrl() + "/" + filePath;
+    }
+
+    @Override
+    public Resource loadAsResource(String filePath) {
+        try {
+            Path fullPath = Path.of(storageProperties.getLocal().getBasePath()).resolve(filePath).normalize();
+            Path basePath = Path.of(storageProperties.getLocal().getBasePath()).normalize();
+            if (!fullPath.startsWith(basePath)) {
+                throw new RuntimeException("Caminho de arquivo inválido");
+            }
+            Resource resource = new UrlResource(fullPath.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new RuntimeException("Arquivo não encontrado");
+            }
+            return resource;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Falha ao carregar arquivo", e);
+        }
     }
 
     private String getExtension(String filename) {

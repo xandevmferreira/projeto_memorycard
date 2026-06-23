@@ -36,6 +36,6 @@ public interface GameRepository extends JpaRepository<Game, Long> {
     @Query("SELECT g FROM Game g WHERE g.userId IN (SELECT u.id FROM User u WHERE u.communityVisible = true) AND g.status = com.memorycard.entity.GameStatus.COMPLETED ORDER BY g.completedAt DESC NULLS LAST, g.createdAt DESC")
     List<Game> findRecentPublicCompletions(org.springframework.data.domain.Pageable pageable);
 
-    @Query("SELECT u.name, COUNT(g) FROM Game g, User u WHERE g.userId = u.id AND u.communityVisible = true AND g.status = com.memorycard.entity.GameStatus.COMPLETED GROUP BY u.id, u.name ORDER BY COUNT(g) DESC")
+    @Query("SELECT COALESCE(u.nick, 'Jogador'), COUNT(g) FROM Game g, User u WHERE g.userId = u.id AND u.communityVisible = true AND g.status = com.memorycard.entity.GameStatus.COMPLETED GROUP BY u.id, u.nick ORDER BY COUNT(g) DESC")
     List<Object[]> findCommunityLeaderboard(org.springframework.data.domain.Pageable pageable);
 }

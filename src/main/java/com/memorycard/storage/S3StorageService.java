@@ -1,6 +1,7 @@
 package com.memorycard.storage;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +30,11 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String getPublicUrl(String filePath) {
+        throw new UnsupportedOperationException("Storage S3/R2 ainda não implementado");
+    }
+
+    @Override
+    public Resource loadAsResource(String filePath) {
         throw new UnsupportedOperationException("Storage S3/R2 ainda não implementado");
     }
 }

@@ -1,5 +1,6 @@
 package com.memorycard.storage;
 
+import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface StorageService {
@@ -11,4 +12,6 @@ public interface StorageService {
     void delete(String filePath);
 
     String getPublicUrl(String filePath);
+
+    Resource loadAsResource(String filePath);
 }

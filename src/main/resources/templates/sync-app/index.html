@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('MemoryCard Sync')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav('sync')}"></nav>
+
+<main class="container sync-app-page">
+    <header class="page-header">
+        <h1>⚙️ MemoryCard Sync</h1>
+        <p class="field-hint">Ferramenta <strong>opcional e avançada</strong> para enviar saves do PC automaticamente.</p>
+        <p class="field-hint">Recomendado para a maioria: use <strong>Gravar fita</strong> na página do jogo ou <strong>Inserir fita</strong> para jogar no navegador.</p>
+    </header>
+
+    <section class="card sync-app-hero">
+        <div class="sync-app-steps">
+            <div class="sync-step">
+                <span class="sync-step-num">1</span>
+                <p><strong>Baixe</strong> o zip (já vinculado à sua conta)</p>
+            </div>
+            <div class="sync-step">
+                <span class="sync-step-num">2</span>
+                <p><strong>Extraia</strong> e dê duplo clique em <code>Iniciar-MemoryCard-Sync.bat</code></p>
+            </div>
+            <div class="sync-step">
+                <span class="sync-step-num">3</span>
+                <p><strong>Escolha o jogo</strong> — o app acha os saves e avisa quando encontrar</p>
+            </div>
+        </div>
+
+        <div class="sync-app-download">
+            <a th:href="@{/sync-app/download}" class="btn btn-primary btn-lg sync-download-btn">
+                ⬇ Baixar MemoryCard Sync
+            </a>
+            <p class="field-hint">Requer Java 21+ no PC (<a href="https://adoptium.net" target="_blank" rel="noopener">Adoptium</a>). Não precisa copiar token nem senha.</p>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Como funciona</h2>
+        <ul class="field-hint sync-faq">
+            <li>Escolha o jogo — o programa procura a pasta de saves no PC automaticamente</li>
+            <li>Quando um save muda, envia para o site na fita <em>Sync automático</em> do jogo</li>
+            <li>Roda só no seu computador — não acessa outros PCs</li>
+            <li>Pode ficar na bandeja enquanto você joga</li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>

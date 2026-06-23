@@ -6,10 +6,18 @@ import com.memorycard.entity.GameStatus;
 import com.memorycard.security.SecurityUtils;
 import com.memorycard.service.CoverImageService;
 import com.memorycard.service.ExternalGameApiService;
+import com.memorycard.service.GameCartridgeService;
 import com.memorycard.service.GameJournalService;
 import com.memorycard.service.GameService;
+import com.memorycard.service.PlaySessionService;
 import com.memorycard.service.RetroAchievementsService;
+import com.memorycard.service.SupportedPlatforms;
+import com.memorycard.entity.ArchiveFileType;
 import jakarta.validation.Valid;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 
 import com.memorycard.util.MetacriticFormatter;
@@ -30,17 +39,23 @@ public class GameWebController {
     private final CoverImageService coverImageService;
     private final RetroAchievementsService retroAchievementsService;
     private final GameJournalService gameJournalService;
+    private final PlaySessionService playSessionService;
+    private final GameCartridgeService gameCartridgeService;
 
     public GameWebController(GameService gameService,
                              ExternalGameApiService externalGameApiService,
                              CoverImageService coverImageService,
                              RetroAchievementsService retroAchievementsService,
-                             GameJournalService gameJournalService) {
+                             GameJournalService gameJournalService,
+                             PlaySessionService playSessionService,
+                             GameCartridgeService gameCartridgeService) {
         this.gameService = gameService;
         this.externalGameApiService = externalGameApiService;
         this.coverImageService = coverImageService;
         this.retroAchievementsService = retroAchievementsService;
         this.gameJournalService = gameJournalService;
+        this.playSessionService = playSessionService;
+        this.gameCartridgeService = gameCartridgeService;
     }
 
     @GetMapping
@@ -88,7 +103,17 @@ public class GameWebController {
 
     @GetMapping("/{id}")
     public String detail(@PathVariable("id") Long id, Model model) {
-        model.addAttribute("game", gameService.findById(SecurityUtils.getCurrentUserId(), id));
+        Long userId = SecurityUtils.getCurrentUserId();
+        var game = gameService.findById(userId, id);
+        var cartridges = gameCartridgeService.listForGame(userId, id);
+        boolean webPlayer = SupportedPlatforms.supportsWebPlayer(game.platform());
+
+        model.addAttribute("game", game);
+        model.addAttribute("activePlaySession", playSessionService.findActiveForGame(userId, id));
+        model.addAttribute("cartridges", cartridges);
+        model.addAttribute("archiveFileTypes", ArchiveFileType.values());
+        model.addAttribute("webPlayerSupported", webPlayer);
+        model.addAttribute("latestCartridge", cartridges.isEmpty() ? null : cartridges.getFirst());
         return "games/detail";
     }
 
@@ -202,9 +227,135 @@ public class GameWebController {
         return "redirect:/games/" + gameId;
     }
 
+    @PostMapping("/{id}/cartridges/record")
+    public String recordTape(@PathVariable("id") Long id,
+                             @RequestParam("label") String label,
+                             @RequestParam(value = "memories", required = false) String memories,
+                             @RequestParam(value = "sessionDate", required = false) String sessionDate,
+                             @RequestParam(value = "emulatorHint", required = false) String emulatorHint,
+                             @RequestParam(value = "saveFile", required = false) MultipartFile saveFile,
+                             @RequestParam(value = "stateFile", required = false) MultipartFile stateFile,
+                             @RequestParam(value = "screenshot", required = false) MultipartFile screenshot,
+                             @RequestParam(value = "extraFiles", required = false) MultipartFile[] extraFiles,
+                             RedirectAttributes redirectAttributes) {
+        try {
+            java.time.LocalDate date = sessionDate != null && !sessionDate.isBlank()
+                    ? java.time.LocalDate.parse(sessionDate)
+                    : java.time.LocalDate.now();
+            var cartridge = gameCartridgeService.recordTape(
+                    SecurityUtils.getCurrentUserId(), id, label, memories, date, emulatorHint,
+                    saveFile, stateFile, screenshot, extraFiles);
+            redirectAttributes.addFlashAttribute("success", "Fita gravada com sucesso!");
+            return "redirect:/games/" + id + "/cartridges/" + cartridge.id() + "/insert";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/games/" + id + "#fitas";
+        }
+    }
+
+    @GetMapping("/{gameId}/cartridges/{cartridgeId}/insert")
+    public String insertTape(@PathVariable("gameId") Long gameId,
+                             @PathVariable("cartridgeId") Long cartridgeId,
+                             Model model) {
+        model.addAttribute("tape", gameCartridgeService.getInsertView(
+                SecurityUtils.getCurrentUserId(), gameId, cartridgeId));
+        return "games/cartridge-insert";
+    }
+
+    @GetMapping("/{gameId}/cartridges/{cartridgeId}/play")
+    public String playTape(@PathVariable("gameId") Long gameId,
+                           @PathVariable("cartridgeId") Long cartridgeId,
+                           Model model) {
+        try {
+            model.addAttribute("manifest", gameCartridgeService.getPlayerManifest(
+                    SecurityUtils.getCurrentUserId(), gameId, cartridgeId));
+            return "games/cartridge-play";
+        } catch (IllegalArgumentException e) {
+            return "redirect:/games/" + gameId + "/cartridges/" + cartridgeId + "/insert";
+        }
+    }
+
+    @GetMapping("/{gameId}/cartridges/{cartridgeId}/export")
+    public ResponseEntity<Resource> exportTape(@PathVariable("gameId") Long gameId,
+                                               @PathVariable("cartridgeId") Long cartridgeId) throws IOException {
+        Resource zip = gameCartridgeService.exportCartridgeZip(
+                SecurityUtils.getCurrentUserId(), gameId, cartridgeId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + zip.getFilename() + "\"")
+                .contentType(MediaType.parseMediaType("application/zip"))
+                .body(zip);
+    }
+
+    @PostMapping("/{id}/cartridges")
+    public String createCartridge(@PathVariable("id") Long id,
+                                  @RequestParam("label") String label,
+                                  @RequestParam(value = "memories", required = false) String memories,
+                                  @RequestParam(value = "sessionDate", required = false) String sessionDate,
+                                  @RequestParam(value = "emulatorHint", required = false) String emulatorHint,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            java.time.LocalDate date = sessionDate != null && !sessionDate.isBlank()
+                    ? java.time.LocalDate.parse(sessionDate)
+                    : null;
+            gameCartridgeService.create(SecurityUtils.getCurrentUserId(), id, label, memories, date, emulatorHint);
+            redirectAttributes.addFlashAttribute("success", "Fita digital criada!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/games/" + id;
+    }
+
+    @PostMapping("/{gameId}/cartridges/{cartridgeId}/files")
+    public String uploadArchiveFile(@PathVariable("gameId") Long gameId,
+                                    @PathVariable("cartridgeId") Long cartridgeId,
+                                    @RequestParam("fileType") ArchiveFileType fileType,
+                                    @RequestParam("file") MultipartFile file,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            gameCartridgeService.addFile(SecurityUtils.getCurrentUserId(), gameId, cartridgeId, fileType, file);
+            redirectAttributes.addFlashAttribute("success", "Arquivo adicionado à fita!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/games/" + gameId;
+    }
+
+    @GetMapping("/{gameId}/cartridges/{cartridgeId}/files/{fileId}/download")
+    public ResponseEntity<Resource> downloadArchiveFile(@PathVariable("gameId") Long gameId,
+                                                        @PathVariable("cartridgeId") Long cartridgeId,
+                                                        @PathVariable("fileId") Long fileId) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        Resource resource = gameCartridgeService.downloadFile(userId, gameId, cartridgeId, fileId);
+        String filename = gameCartridgeService.getOriginalFilename(userId, gameId, cartridgeId, fileId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
+    }
+
+    @PostMapping("/{gameId}/cartridges/{cartridgeId}/delete")
+    public String deleteCartridge(@PathVariable("gameId") Long gameId,
+                                  @PathVariable("cartridgeId") Long cartridgeId,
+                                  RedirectAttributes redirectAttributes) {
+        gameCartridgeService.deleteCartridge(SecurityUtils.getCurrentUserId(), gameId, cartridgeId);
+        redirectAttributes.addFlashAttribute("success", "Fita removida.");
+        return "redirect:/games/" + gameId;
+    }
+
+    @PostMapping("/{gameId}/cartridges/{cartridgeId}/files/{fileId}/delete")
+    public String deleteArchiveFile(@PathVariable("gameId") Long gameId,
+                                    @PathVariable("cartridgeId") Long cartridgeId,
+                                    @PathVariable("fileId") Long fileId,
+                                    RedirectAttributes redirectAttributes) {
+        gameCartridgeService.deleteFile(SecurityUtils.getCurrentUserId(), gameId, cartridgeId, fileId);
+        redirectAttributes.addFlashAttribute("success", "Arquivo removido.");
+        return "redirect:/games/" + gameId;
+    }
+
     private void populateFormOptions(Model model) {
         model.addAttribute("statuses", GameStatus.values());
         model.addAttribute("completionTypes", CompletionType.values());
+        model.addAttribute("platformSuggestions", SupportedPlatforms.forForm());
     }
 
     private String resolveRawCoverUrl(String coverUrl) {

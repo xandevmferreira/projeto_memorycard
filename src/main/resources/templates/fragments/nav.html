@@ -15,6 +15,7 @@
             <a th:href="@{/profile}" th:classappend="${active == 'profile'} ? 'active' : ''">Perfil</a>
             <a th:href="@{/games/new}" class="btn btn-primary btn-sm">+ Novo Jogo</a>
             <form th:action="@{/logout}" method="post" class="logout-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null}">
                 <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
             </form>
         </div>

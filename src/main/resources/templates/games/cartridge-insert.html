@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{fragments/head :: head('Inserir fita')}"></head>
+<body class="tape-insert-body">
+<nav th:replace="~{fragments/nav :: nav('games')}"></nav>
+
+<main class="tape-insert-stage" id="tape-stage">
+    <div class="tape-insert-vignette"></div>
+
+    <div class="tape-insert-content" id="tape-content">
+        <p class="tape-insert-kicker">📼 Inserir fita</p>
+        <h1 class="tape-insert-title" th:text="${tape.label()}">Fita digital</h1>
+        <p class="tape-insert-game" th:text="${tape.gameTitle()}">Jogo</p>
+
+        <div class="tape-insert-visual">
+            <img th:if="${tape.snapshotUrl() != null}" th:src="${tape.snapshotUrl()}" alt="Momento da sessão" class="tape-insert-shot">
+            <img th:if="${tape.snapshotUrl() == null and tape.gameCoverUrl() != null}" th:src="${tape.gameCoverUrl()}" alt="Capa" class="tape-insert-cover">
+            <div th:if="${tape.snapshotUrl() == null and tape.gameCoverUrl() == null}" class="tape-insert-cover placeholder">📼</div>
+        </div>
+
+        <div class="tape-insert-meta">
+            <p th:if="${tape.sessionDate()}">
+                <span class="tape-meta-label">Sessão</span>
+                <span th:text="${#temporals.format(tape.sessionDate(), 'dd/MM/yyyy')}">data</span>
+            </p>
+            <p th:if="${tape.emulatorHint()}">
+                <span class="tape-meta-label">Emulador</span>
+                <span th:text="${tape.emulatorHint()}">RetroArch</span>
+            </p>
+            <p th:if="${tape.hasSave()}"><span class="badge badge-muted">Save in-game</span></p>
+            <p th:if="${tape.hasState()}"><span class="badge badge-retro">Save state</span></p>
+        </div>
+
+        <blockquote th:if="${tape.memories()}" class="tape-insert-memories" th:text="${tape.memories()}">
+            Memórias da época...
+        </blockquote>
+
+        <div class="tape-insert-actions">
+            <a th:if="${tape.canPlayInBrowser()}"
+               th:href="@{/games/{g}/cartridges/{c}/play(g=${tape.gameId()}, c=${tape.cartridgeId()})}"
+               class="btn btn-primary btn-lg tape-btn-play">▶ Rodar fita no navegador</a>
+            <a th:href="@{/games/{g}/cartridges/{c}/export(g=${tape.gameId()}, c=${tape.cartridgeId()})}"
+               class="btn btn-ghost">⬇ Exportar pacote (.zip)</a>
+            <a th:href="@{|/games/${tape.gameId()}#fitas|}" class="btn btn-ghost">Voltar ao jogo</a>
+        </div>
+
+        <p class="field-hint tape-insert-hint" th:if="${tape.canPlayInBrowser()}">
+            Você precisará da ROM no seu PC (não fica no servidor). O save/state vem desta fita.
+            <a th:href="@{/ajuda/fitas}">Tutorial</a> ·
+            <a th:href="@{/ajuda/fitas#lag}">Sobre delay/lag</a>
+        </p>
+        <p class="field-hint tape-insert-hint" th:unless="${tape.canPlayInBrowser()}">
+            Esta plataforma ainda não roda no navegador — use Exportar pacote e continue no RetroArch.
+        </p>
+    </div>
+</main>
+
+<script th:src="@{/js/tape-insert.js}"></script>
+</body>
+</html>

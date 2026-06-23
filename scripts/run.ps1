@@ -1,4 +1,4 @@
-# Libera a porta 8080, compila e inicia o MemoryCard.
+# Libera a porta 8080, compila, atualiza o JAR e inicia o MemoryCard.
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent
 
@@ -8,11 +8,8 @@ $root = Split-Path $PSScriptRoot -Parent
 $javaHome = $env:JAVA_HOME
 if (-not $javaHome) { $javaHome = "C:\Program Files\Java\jdk-21.0.11" }
 $java = Join-Path $javaHome "bin\java.exe"
-
-$argfile = Get-ChildItem "$env:TEMP\cp_*.argfile" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-$cp = (Get-Content $argfile.FullName -Raw) -replace '(?s).*-cp "([^"]+)".*', '$1'
-$classes = Join-Path $root "target\classes"
+if (-not (Test-Path $java)) { $javaHome = "C:\Program Files\Java\jdk-25.0.3"; $java = Join-Path $javaHome "bin\java.exe" }
 
 Write-Host "Iniciando MemoryCard em http://localhost:8080 ..."
 Set-Location $root
-& $java -cp "$cp;$classes" com.memorycard.MemorycardApplication
+& $java -jar "target\memorycard-0.1.0.jar"
